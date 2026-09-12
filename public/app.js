@@ -228,7 +228,7 @@ const TRANSLATIONS = {
     tplSuccessDesc: 'Thank you message with renewal confirmation',
     waMessagePreviewLabel: 'Message Preview (Editable):',
     btnCopyMsg: 'Copy Message',
-    btnSendWhatsApp: 'Send on WhatsApp',
+    btnSendWhatsApp: 'Open & Send in WhatsApp Web',
     receiptModalTitle: 'Print Renewal Receipt Voucher',
     receiptBannerText: 'OFFICIAL VEHICLE DOCUMENT RENEWAL RECEIPT',
     receiptCustomerInfo: 'Customer Details',
