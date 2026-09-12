@@ -1,0 +1,526 @@
+{
+  "admin": {
+    "name": "Sabir Ajmeri",
+    "role": "Admin",
+    "initials": "SA",
+    "welcomeName": "Sabir",
+    "phone": "+91 99250 23570"
+  },
+  "slogans": {
+    "tagline": "Keep Your Customers On The Road",
+    "taglineSub": "We Handle The Reminders!",
+    "footer": "Customers Today. Safer Journeys Tomorrow."
+  },
+  "metrics": {
+    "totalCustomers": "1,248",
+    "totalCustomersSub": "+28 this month",
+    "todayFollowups": "26",
+    "expiredDocs": "14",
+    "next7Days": "38",
+    "next30Days": "112"
+  },
+  "docStatus": {
+    "insuranceExpiring": 48,
+    "insuranceExpired": 12,
+    "fitnessExpiring": 28,
+    "fitnessExpired": 6,
+    "pucExpiring": 36,
+    "pucExpired": 18,
+    "newLicenceExpiring": 14,
+    "newLicenceExpired": 2,
+    "renewalLicenceExpiring": 22,
+    "renewalLicenceExpired": 4,
+    "rcTransferExpiring": 18,
+    "rcTransferExpired": 3,
+    "vehiclePassingExpiring": 16,
+    "vehiclePassingExpired": 5
+  },
+  "callingList": [
+    {
+      "id": "c_1789052023678",
+      "name": "Test User",
+      "phone": "9876543210",
+      "vehicle": "GJ01ZZ1234",
+      "vehicleType": "2-wheeler",
+      "doc": "Insurance",
+      "expiry": "09 Dec 2026",
+      "expiryRaw": "2026-12-09",
+      "daysLeft": "90 Days",
+      "daysType": "normal",
+      "status": "Upcoming",
+      "assignedStaff": "emp2",
+      "remarks": "Called - Will pay tomorrow",
+      "contacted": true,
+      "createdBy": "Kavita Dave",
+      "createdById": "emp2",
+      "createdAt": "05 Sep 2026, 11:30 AM"
+    },
+    {
+      "id": "c1",
+      "name": "Rajesh Patel",
+      "vehicleType": "4-wheeler",
+      "vehicle": "GJ01AB1234",
+      "doc": "Insurance",
+      "expiry": "15 Jun 2027",
+      "daysLeft": "277 Days",
+      "daysType": "normal",
+      "status": "Upcoming",
+      "phone": "9825012345",
+      "remarks": "Call tomorrow at 11 AM",
+      "contacted": false,
+      "expiryRaw": "2027-06-15",
+      "assignedStaff": "emp1",
+      "createdBy": "Sabir Ajmeri",
+      "createdById": "emp1",
+      "createdAt": "05 Sep 2026, 11:30 AM",
+      "lastModifiedBy": "Sabir Ajmeri",
+      "lastModifiedAt": "11 Sept 2026, 11:46 pm"
+    },
+    {
+      "id": "c2",
+      "name": "Priya Shah",
+      "vehicleType": "2-wheeler",
+      "vehicle": "GJ27CD5678",
+      "doc": "PUC",
+      "expiry": "09 Sep 2026",
+      "daysLeft": "Today",
+      "daysType": "red",
+      "status": "Expiry Today",
+      "phone": "9898023456",
+      "remarks": "WhatsApp quote sent",
+      "contacted": true,
+      "assignedStaff": "emp3",
+      "createdBy": "Hitesh Solanki",
+      "createdById": "emp3",
+      "createdAt": "05 Sep 2026, 11:30 AM"
+    },
+    {
+      "id": "c3",
+      "name": "Amit Trivedi",
+      "vehicleType": "commercial",
+      "vehicle": "GJ01EF9012",
+      "doc": "Fitness",
+      "expiry": "12 Sep 2026",
+      "daysLeft": "3 Days",
+      "daysType": "red",
+      "status": "Due Soon",
+      "phone": "9723034567",
+      "remarks": "Agreed to renew",
+      "contacted": true,
+      "assignedStaff": "emp4",
+      "createdBy": "Mayur Vaghela",
+      "createdById": "emp4",
+      "createdAt": "05 Sep 2026, 11:30 AM"
+    },
+    {
+      "id": "c4",
+      "name": "Mehul Desai",
+      "vehicleType": "4-wheeler",
+      "vehicle": "GJ38GH3456",
+      "doc": "Insurance",
+      "expiry": "20 Sep 2026",
+      "daysLeft": "11 Days",
+      "daysType": "normal",
+      "status": "Upcoming",
+      "phone": "9824045678",
+      "remarks": "Payment pending",
+      "contacted": false,
+      "assignedStaff": "emp1",
+      "createdBy": "Sabir Ajmeri",
+      "createdById": "emp1",
+      "createdAt": "05 Sep 2026, 11:30 AM"
+    },
+    {
+      "id": "c5",
+      "name": "Nisha Bhatt",
+      "vehicleType": "2-wheeler",
+      "vehicle": "GJ01IJ7890",
+      "doc": "PUC",
+      "expiry": "09 Sep 2026",
+      "daysLeft": "Today",
+      "daysType": "red",
+      "status": "Expiry Today",
+      "phone": "9909056789",
+      "remarks": "Called - will visit office",
+      "contacted": true,
+      "assignedStaff": "emp2",
+      "createdBy": "Kavita Dave",
+      "createdById": "emp2",
+      "createdAt": "05 Sep 2026, 11:30 AM"
+    },
+    {
+      "id": "c6",
+      "name": "Ketan Shah",
+      "vehicleType": "4-wheeler",
+      "vehicle": "GJ27KL1122",
+      "doc": "Fitness",
+      "expiry": "18 Sep 2026",
+      "daysLeft": "9 Days",
+      "daysType": "red",
+      "status": "Due Soon",
+      "phone": "9879067890",
+      "contacted": false,
+      "assignedStaff": "emp3",
+      "createdBy": "Hitesh Solanki",
+      "createdById": "emp3",
+      "createdAt": "05 Sep 2026, 11:30 AM",
+      "remarks": "Customer agreed to renew"
+    },
+    {
+      "id": "c_new_dl_1",
+      "name": "Karan Varma",
+      "phone": "9825411223",
+      "vehicle": "GJ01XY8899",
+      "vehicleType": "2-wheeler",
+      "doc": "New Driving Licence",
+      "expiry": "18 Sep 2026",
+      "expiryRaw": "2026-09-18",
+      "daysLeft": "7 Days",
+      "daysType": "red",
+      "status": "Due Soon",
+      "assignedStaff": "emp1",
+      "remarks": "Documents submitted for test slot",
+      "contacted": false,
+      "createdBy": "Sabir Ajmeri",
+      "createdById": "emp1",
+      "createdAt": "05 Sep 2026, 11:30 AM"
+    },
+    {
+      "id": "c_ren_dl_2",
+      "name": "Bhavik Shah",
+      "phone": "9898144556",
+      "vehicle": "GJ27AA3322",
+      "vehicleType": "4-wheeler",
+      "doc": "Renewal Licence",
+      "expiry": "14 Sep 2026",
+      "expiryRaw": "2026-09-14",
+      "daysLeft": "3 Days",
+      "daysType": "red",
+      "status": "Due Soon",
+      "assignedStaff": "emp2",
+      "remarks": "Medical certificate uploaded",
+      "contacted": false,
+      "createdBy": "Kavita Dave",
+      "createdById": "emp2",
+      "createdAt": "05 Sep 2026, 11:30 AM"
+    },
+    {
+      "id": "c_rc_tr_3",
+      "name": "Dharmesh Parikh",
+      "phone": "9724155667",
+      "vehicle": "GJ01GH6677",
+      "vehicleType": "4-wheeler",
+      "doc": "RC Transfer",
+      "expiry": "20 Sep 2026",
+      "expiryRaw": "2026-09-20",
+      "daysLeft": "9 Days",
+      "daysType": "normal",
+      "status": "Upcoming",
+      "assignedStaff": "emp3",
+      "remarks": "Form 29 & 30 signed, NOC received",
+      "contacted": false,
+      "createdBy": "Hitesh Solanki",
+      "createdById": "emp3",
+      "createdAt": "05 Sep 2026, 11:30 AM"
+    },
+    {
+      "id": "c_veh_pass_4",
+      "name": "Jayanti Chauhan",
+      "phone": "9825599881",
+      "vehicle": "GJ01JK9900",
+      "vehicleType": "commercial",
+      "doc": "Vehicle Passing",
+      "expiry": "11 Sep 2026",
+      "expiryRaw": "2026-09-11",
+      "daysLeft": "Today",
+      "daysType": "red",
+      "status": "Expiry Today",
+      "assignedStaff": "emp4",
+      "remarks": "Passing appointment booked for tomorrow",
+      "contacted": false,
+      "createdBy": "Pooja Mehta",
+      "createdById": "emp4",
+      "createdAt": "05 Sep 2026, 11:30 AM"
+    }
+  ],
+  "next7DaysList": [
+    {
+      "id": "n1",
+      "name": "Viral Mehta",
+      "vehicleType": "4-wheeler",
+      "vehicle": "GJ01MN3344",
+      "doc": "Insurance",
+      "expiry": "12 Sep 2026",
+      "days": "3",
+      "phone": "9825111111"
+    },
+    {
+      "id": "n2",
+      "name": "Sonal Patel",
+      "vehicleType": "2-wheeler",
+      "vehicle": "GJ38OP5566",
+      "doc": "PUC",
+      "expiry": "13 Sep 2026",
+      "days": "4",
+      "phone": "9825222222"
+    },
+    {
+      "id": "n3",
+      "name": "Ravi Parmar",
+      "vehicleType": "commercial",
+      "vehicle": "GJ27QR7788",
+      "doc": "Fitness",
+      "expiry": "14 Sep 2026",
+      "days": "5",
+      "phone": "9825333333"
+    },
+    {
+      "id": "n4",
+      "name": "Deepti Joshi",
+      "vehicleType": "4-wheeler",
+      "vehicle": "GJ01ST9900",
+      "doc": "Insurance",
+      "expiry": "15 Sep 2026",
+      "days": "6",
+      "phone": "9825444444"
+    },
+    {
+      "id": "n5",
+      "name": "Harshil Shah",
+      "vehicleType": "2-wheeler",
+      "vehicle": "GJ18UV2233",
+      "doc": "PUC",
+      "expiry": "16 Sep 2026",
+      "days": "7",
+      "phone": "9825555555"
+    }
+  ],
+  "expiredDocsList": [
+    {
+      "id": "e1",
+      "name": "Kiran Solanki",
+      "vehicleType": "2-wheeler",
+      "vehicle": "GJ01WX4455",
+      "doc": "PUC",
+      "expiredOn": "25 Aug 2026",
+      "phone": "9825666666"
+    },
+    {
+      "id": "e2",
+      "name": "Bhavesh Rana",
+      "vehicleType": "4-wheeler",
+      "vehicle": "GJ27YZ6677",
+      "doc": "Insurance",
+      "expiredOn": "28 Aug 2026",
+      "phone": "9825777777"
+    },
+    {
+      "id": "e3",
+      "name": "Nilesh Patel",
+      "vehicleType": "commercial",
+      "vehicle": "GJ38AB8899",
+      "doc": "Fitness",
+      "expiredOn": "30 Aug 2026",
+      "phone": "9825888888"
+    },
+    {
+      "id": "e4",
+      "name": "Hetal Shah",
+      "vehicleType": "2-wheeler",
+      "vehicle": "GJ01CD1122",
+      "doc": "PUC",
+      "expiredOn": "02 Sep 2026",
+      "phone": "9825999999"
+    },
+    {
+      "id": "e5",
+      "name": "Manish Jain",
+      "vehicleType": "4-wheeler",
+      "vehicle": "GJ18EF3344",
+      "doc": "Insurance",
+      "expiredOn": "03 Sep 2026",
+      "phone": "9825000000"
+    }
+  ],
+  "activities": [
+    {
+      "id": "act_1789152020764",
+      "type": "contacted",
+      "text": "Marked as contacted - Nisha Bhatt by Sabir Ajmeri",
+      "time": "Just now"
+    },
+    {
+      "id": "act_1789151759218",
+      "type": "contacted",
+      "text": "Follow-up note saved for Ketan Shah: \"Customer agreed to renew\" by Sabir Ajmeri",
+      "time": "Just now"
+    },
+    {
+      "id": "act_1789151606697",
+      "type": "contacted",
+      "text": "Marked as contacted - Amit Trivedi by Sabir Ajmeri",
+      "time": "Just now"
+    },
+    {
+      "id": "act_1789150580092",
+      "type": "contacted",
+      "text": "Updated details for Rajesh Patel (GJ01AB1234) by Sabir Ajmeri (Admin)",
+      "time": "Just now"
+    },
+    {
+      "id": "act_1789148834629",
+      "type": "call",
+      "text": "Opened call details for Test User (2-wheeler) by Sabir Ajmeri",
+      "time": "Just now"
+    },
+    {
+      "id": "act_1789140073634",
+      "type": "call",
+      "text": "Opened call details for Test User (2-wheeler) by Sabir Ajmeri",
+      "time": "Just now"
+    },
+    {
+      "id": "act_1789139838725",
+      "type": "contacted",
+      "text": "Follow-up note saved for Test User: \"Called - Will pay tomorrow\" by Sabir Ajmeri",
+      "time": "Just now"
+    },
+    {
+      "id": "act_1789137981328",
+      "type": "call",
+      "text": "Opened call details for Test User (2-wheeler) by Sabir Ajmeri",
+      "time": "Just now"
+    },
+    {
+      "id": "act_1789133919476",
+      "type": "call",
+      "text": "Opened call details for Test User (2-wheeler) by Sabir Ajmeri",
+      "time": "Just now"
+    },
+    {
+      "id": "act_1789133118789",
+      "type": "call",
+      "text": "Called Test User (2-wheeler) - Contacted by Sabir Ajmeri",
+      "time": "Just now"
+    },
+    {
+      "id": "act_1789133002937",
+      "type": "call",
+      "text": "Called Test User (2-wheeler) - Contacted by Sabir Ajmeri",
+      "time": "Just now"
+    },
+    {
+      "id": "act_1789132572198",
+      "type": "call",
+      "text": "Called Test User (2-wheeler) - Contacted by Sabir Ajmeri",
+      "time": "Just now"
+    },
+    {
+      "id": "act_1789098366911",
+      "type": "call",
+      "text": "Called Test User (2-wheeler) - Contacted by Sabir Ajmeri",
+      "time": "Just now"
+    },
+    {
+      "id": "act_1789098298797",
+      "type": "contacted",
+      "text": "Marked as contacted - Test User by Sabir Ajmeri",
+      "time": "Just now"
+    },
+    {
+      "id": "act_1789098201886",
+      "type": "call",
+      "text": "Called Test User (2-wheeler) - Contacted by Sabir Ajmeri",
+      "time": "Just now"
+    }
+  ],
+  "employees": [
+    {
+      "id": "emp1",
+      "name": "Sabir Ajmeri",
+      "role": "Admin",
+      "username": "admin",
+      "password": "admin123",
+      "phone": "+91 99250 23570",
+      "email": "sabir@momai.com"
+    },
+    {
+      "id": "emp2",
+      "name": "Kavita Dave",
+      "role": "Telecaller",
+      "username": "kavita",
+      "password": "1234",
+      "phone": "+91 98250 88776",
+      "email": "kavita@momai.com"
+    },
+    {
+      "id": "emp3",
+      "name": "Hitesh Solanki",
+      "role": "Telecaller",
+      "username": "hitesh",
+      "password": "1234",
+      "phone": "+91 98790 44332",
+      "email": "hitesh@momai.com"
+    },
+    {
+      "id": "emp4",
+      "name": "Mayur Vaghela",
+      "role": "Manager",
+      "username": "mayur",
+      "password": "1234",
+      "phone": "+91 99090 12121",
+      "email": "mayur@momai.com"
+    }
+  ],
+  "activeEmployeeId": "emp1",
+  "documentTypes": [
+    {
+      "id": "insurance",
+      "name": "Insurance",
+      "icon": "🛡️",
+      "color": "blue"
+    },
+    {
+      "id": "fitness",
+      "name": "Fitness",
+      "icon": "🚗",
+      "color": "green"
+    },
+    {
+      "id": "puc",
+      "name": "PUC",
+      "icon": "🌱",
+      "color": "purple"
+    },
+    {
+      "id": "new-licence",
+      "name": "New Driving Licence",
+      "icon": "🪪",
+      "color": "amber"
+    },
+    {
+      "id": "renewal-licence",
+      "name": "Renewal Licence",
+      "icon": "🔄",
+      "color": "orange"
+    },
+    {
+      "id": "rc-transfer",
+      "name": "RC Transfer",
+      "icon": "🔁",
+      "color": "indigo"
+    },
+    {
+      "id": "vehicle-passing",
+      "name": "Vehicle Passing",
+      "icon": "📋",
+      "color": "teal"
+    },
+    {
+      "id": "road-tax",
+      "name": "Road Tax",
+      "icon": "📑",
+      "color": "blue"
+    }
+  ]
+}

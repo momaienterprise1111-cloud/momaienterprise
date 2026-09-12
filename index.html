@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Momai Enterprise CRM - Drive Secure. We Remind.</title>
+  <meta name="description" content="Momai Enterprise CRM - Modern Editable Bilingual Vehicle Document Reminder CRM in Gujarati and English">
+  <link rel="icon" type="image/jpeg" href="logo.jpg">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css?v=3.0">
+  <!-- SheetJS for local Excel (.xlsx) import & export -->
+  <script src="xlsx.full.min.js"></script>
+</head>
+<body>
+  <!-- Login Screen Overlay -->
+  <div id="loginOverlay">
+    <div class="login-card">
+      <div class="login-brand-header">
+        <img src="logo.jpg" alt="Momai Enterprise" class="login-logo-img">
+        <h2 class="login-title">Momai <span>Enterprise CRM</span></h2>
+        <p class="login-subtitle" data-i18n="loginSubtitle">Please sign in to access your CRM portal</p>
+      </div>
+
+      <!-- Error message alert -->
+      <div class="login-error-msg" id="loginErrorMsg">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="loginErrorText">Invalid User ID or Password</span>
+      </div>
+
+      <form id="loginForm">
+        <div class="login-form-group">
+          <label for="loginUsername" data-i18n="loginUserIdLabel">User ID / વપરાશકર્તા ID</label>
+          <div class="login-input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <input type="text" id="loginUsername" class="login-input" placeholder="e.g. admin or kavita" required autofocus autocomplete="username">
+          </div>
+        </div>
+
+        <div class="login-form-group">
+          <div class="login-label-row">
+            <label for="loginPassword" data-i18n="loginPasswordLabel">Password / પાસવર્ડ</label>
+            <a href="javascript:void(0)" class="link-forgot-pass" id="btnOpenForgotPassword" data-i18n="forgotPasswordLink">Forgot Password? / પાસવર્ડ ભૂલી ગયા?</a>
+          </div>
+          <div class="login-input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="password" id="loginPassword" class="login-input" placeholder="Enter password" required autocomplete="current-password">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-login-submit" id="btnLoginSubmit">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          <span data-i18n="btnLoginText">Log In / લૉગિન કરો</span>
+        </button>
+      </form>
+
+      <!-- Quick 1-Click Demo Login Chips for testing -->
+      <div class="login-quick-demo">
+        <div class="login-demo-title" data-i18n="quickLoginTitle">⚡ Quick Test Logins / ઝડપી લૉગિન:</div>
+        <div class="demo-chips-grid">
+          <button type="button" class="demo-chip-btn" data-demo-user="admin" data-demo-pass="admin123">
+            <span>👑 Admin Master</span>
+            <span class="demo-chip-role">Master</span>
+          </button>
+          <button type="button" class="demo-chip-btn" data-demo-user="kavita" data-demo-pass="1234">
+            <span>📞 Kavita</span>
+            <span class="demo-chip-role">Telecaller</span>
+          </button>
+          <button type="button" class="demo-chip-btn" data-demo-user="hitesh" data-demo-pass="1234">
+            <span>📞 Hitesh</span>
+            <span class="demo-chip-role">Telecaller</span>
+          </button>
+          <button type="button" class="demo-chip-btn" data-demo-user="mayur" data-demo-pass="1234">
+            <span>👔 Mayur</span>
+            <span class="demo-chip-role">Manager</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <!-- Left Sidebar -->
+    <aside class="sidebar" id="appSidebar">
+      <!-- Brand Logo & Slogan (Click returns to Dashboard) -->
+      <div class="brand-section" id="btnBrandLogo" title="Back to Dashboard">
+        <img src="logo.jpg" alt="Momai Enterprise Logo" class="brand-logo-img">
+        <div class="brand-info">
+          <div class="brand-name">Momai <span>Enterprise</span></div>
+          <div class="brand-tagline" data-i18n="brandTagline">Drive Secure. We Remind.</div>
+        </div>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="sidebar-menu">
+        <a href="#dashboard" class="nav-item active" data-view-target="dashboard" id="navItemDashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span data-i18n="navDashboard">Dashboard</span>
+        </a>
+
+        <!-- Customers Group -->
+        <div class="nav-group open">
+          <div class="nav-group-header" data-view-target="customers">
+            <div class="group-left">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span data-i18n="navCustomers">Customers</span>
+            </div>
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+          <div class="nav-sub-menu">
+            <a href="#customers" class="nav-sub-item" data-view-target="customers" id="navSubAllCustomers">
+              <span class="nav-bullet"></span>
+              <span data-i18n="navAllCustomers">All Customers</span>
+            </a>
+            <a href="#add-customer" class="nav-sub-item" id="btnSidebarAddCustomer">
+              <span class="nav-bullet"></span>
+              <span data-i18n="navAddCustomer">+ Add Customer</span>
+            </a>
+            <a href="#follow-ups" class="nav-sub-item" data-view-target="followups" id="navSubFollowups">
+              <span class="nav-bullet"></span>
+              <span data-i18n="navFollowups">Follow-ups</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Documents Group -->
+        <div class="nav-group open">
+          <div class="nav-group-header" data-view-target="documents">
+            <div class="group-left">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <span data-i18n="navDocuments">Documents</span>
+            </div>
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+          <div class="nav-sub-menu" id="sidebarDocSubmenu">
+            <a href="#documents-insurance" class="nav-sub-item" data-view-target="documents" data-doc-tab="insurance">
+              <span class="nav-bullet"></span>
+              <span data-i18n="navInsurance">Insurance</span>
+            </a>
+            <a href="#documents-fitness" class="nav-sub-item" data-view-target="documents" data-doc-tab="fitness">
+              <span class="nav-bullet"></span>
+              <span data-i18n="navFitness">Fitness</span>
+            </a>
+            <a href="#documents-puc" class="nav-sub-item" data-view-target="documents" data-doc-tab="puc">
+              <span class="nav-bullet"></span>
+              <span data-i18n="navPuc">PUC</span>
+            </a>
+            <a href="#documents-new-licence" class="nav-sub-item" data-view-target="documents" data-doc-tab="new-licence">
+              <span class="nav-bullet"></span>
+              <span data-i18n="docNewDrivingLicence">New Driving Licence</span>
+            </a>
+            <a href="#documents-renewal-licence" class="nav-sub-item" data-view-target="documents" data-doc-tab="renewal-licence">
+              <span class="nav-bullet"></span>
+              <span data-i18n="docRenewalLicence">Renewal Licence</span>
+            </a>
+            <a href="#documents-rc-transfer" class="nav-sub-item" data-view-target="documents" data-doc-tab="rc-transfer">
+              <span class="nav-bullet"></span>
+              <span data-i18n="docRcTransfer">RC Transfer</span>
+            </a>
+            <a href="#documents-vehicle-passing" class="nav-sub-item" data-view-target="documents" data-doc-tab="vehicle-passing">
+              <span class="nav-bullet"></span>
+              <span data-i18n="docVehiclePassing">Vehicle Passing</span>
+            </a>
+            <a href="#documents-expired" class="nav-sub-item" data-view-target="documents" data-doc-tab="expired">
+              <span class="nav-bullet"></span>
+              <span data-i18n="navExpired">Expired</span>
+            </a>
+            <a href="javascript:void(0)" class="nav-sub-item nav-manage-docs" id="btnSidebarManageDocs" style="color: #4f46e5; font-weight: 700; margin-top: 4px;">
+              <span class="nav-bullet" style="background:#4f46e5;"></span>
+              <span>⚙️ Manage Types</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Reminders -->
+        <a href="#reminders" class="nav-item" data-view-target="reminders" id="navItemReminders">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span data-i18n="navReminders">Reminders</span>
+        </a>
+
+        <!-- Reports -->
+        <a href="#reports" class="nav-item" data-view-target="reports" id="navItemReports">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span data-i18n="navReports">Reports</span>
+        </a>
+
+        <!-- Settings -->
+        <a href="#settings" class="nav-item" id="btnNavSettings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span data-i18n="navSettings">Settings</span>
+        </a>
+      </nav>
+
+      <!-- Support Card at bottom -->
+      <div class="sidebar-support-card">
+        <div class="support-icon-wrap">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+        </div>
+        <div class="support-details">
+          <span class="support-label" data-i18n="needHelp">Need Help?</span>
+          <span class="support-title" data-i18n="contactSupport">Contact Support</span>
+          <a href="tel:+919925023570" class="support-phone" id="supportPhoneText" title="Click to edit phone number">+91 99250 23570</a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <main class="main-wrapper">
+      <!-- Top Navbar -->
+      <header class="top-navbar">
+        <!-- Search bar with live filtering -->
+        <div class="search-container">
+          <div class="search-input-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search by customer name or vehicle number...">
+          </div>
+          <button class="search-btn" id="searchBtn" data-i18n="searchBtn">Search</button>
+        </div>
+
+        <!-- Right action buttons -->
+        <div class="top-navbar-right">
+          <!-- Real-time Live Sync Indicator -->
+          <div class="sync-status-indicator" id="syncStatusIndicator" title="Live Auto-Sync Active: Any updates by staff appear immediately on this screen">
+            <span class="sync-dot pulse" id="syncStatusDot"></span>
+            <span class="sync-text" id="syncStatusText">Auto-Sync On</span>
+          </div>
+
+          <!-- 1-Click Language Switcher -->
+          <div class="lang-toggle-btn" id="langToggleBtn" title="Click to switch language between English & Gujarati">
+            <span class="lang-pill active" id="langEnPill">English</span>
+            <span class="lang-pill" id="langGuPill">ગુજરાતી</span>
+          </div>
+
+          <!-- Staff & Employee Switcher Pill -->
+          <div class="employee-switch-pill" id="btnOpenEmployeeModal" title="Manage Staff & Switch Active Profile / કર્મચારી પ્રોફાઇલ">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span id="activeEmpNavName">Sabir Ajmeri (Admin)</span>
+            <span style="font-size: 10px; opacity: 0.7;">▾</span>
+          </div>
+
+          <!-- User Profile Badge -->
+          <div class="user-profile-badge" id="userProfileBadge" title="Click to view & edit Staff Profiles">
+            <div class="user-avatar" id="adminInitials">SA</div>
+            <div class="user-info">
+              <span class="user-name" id="adminName">Sabir Ajmeri</span>
+              <span class="user-role" id="adminRole">Admin</span>
+            </div>
+          </div>
+
+          <!-- Logout Button -->
+          <button class="btn-logout" id="btnLogout" title="Log out of current user session / લૉગઆઉટ">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span data-i18n="btnLogout">Logout</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Body Container -->
+      <div class="content-body">
+
+        <!-- ===================================================================
+             VIEW 1: MAIN DASHBOARD (Exact Replica of Photo)
+             =================================================================== -->
+        <div class="view-section active" id="viewDashboard">
+          <!-- Welcome Banner -->
+          <div class="welcome-banner">
+            <div class="welcome-text-group">
+              <h1 id="welcomeHeading">Welcome Back, Sabir!</h1>
+              <p class="welcome-subtitle" data-i18n="welcomeSubtitle">Here's your business update for today.</p>
+            </div>
+            <div class="welcome-banner-right">
+              <div class="current-date-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span id="currentDateDisplay">Tuesday, 9 September 2026</span>
+              </div>
+              <div class="company-slogan">
+                <span data-i18n="taglineHeader">"Keep Your Customers On The Road"</span>
+                <span class="slogan-sub" data-i18n="taglineHeaderSub">We Handle The Reminders!</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5 Top Metric KPI Cards -->
+          <div class="metrics-grid">
+            <!-- Card 1: Total Customers -->
+            <div class="metric-card metric-blue" data-metric-key="totalCustomers" title="Click to edit count">
+              <div class="metric-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <div class="metric-body">
+                <span class="metric-title" data-i18n="metricTotalCustomers">Total Customers</span>
+                <div class="metric-value" id="valTotalCustomers">1,248</div>
+                <div class="metric-footer">
+                  <span class="trend-badge">↑ 12%</span>
+                  <span class="trend-sub" id="subTotalCustomers">+28 this month</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Today's Follow-ups -->
+            <div class="metric-card metric-green" data-metric-key="todayFollowups" title="Click to edit count">
+              <div class="metric-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </div>
+              <div class="metric-body">
+                <span class="metric-title" data-i18n="metricTodayFollowups">Today's Follow-ups</span>
+                <div class="metric-value" id="valTodayFollowups">26</div>
+                <div class="metric-footer">
+                  <a class="metric-link" data-view-trigger="followups" data-i18n="viewList">View List →</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3: Expired Documents -->
+            <div class="metric-card metric-red" data-metric-key="expiredDocs" title="Click to edit count">
+              <div class="metric-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+              <div class="metric-body">
+                <span class="metric-title" data-i18n="metricExpiredDocs">Expired Documents</span>
+                <div class="metric-value" id="valExpiredDocs">14</div>
+                <div class="metric-footer">
+                  <a class="metric-link" data-view-trigger="expired-docs" data-i18n="actionRequired">Action Required →</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 4: Next 7 Days Expiry -->
+            <div class="metric-card metric-orange" data-metric-key="next7Days" title="Click to edit count">
+              <div class="metric-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <div class="metric-body">
+                <span class="metric-title" data-i18n="metricNext7Days">Next 7 Days Expiry</span>
+                <div class="metric-value" id="valNext7Days">38</div>
+                <div class="metric-footer">
+                  <a class="metric-link" data-view-trigger="next-7-days" data-i18n="viewList">View List →</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 5: Next 30 Days Expiry -->
+            <div class="metric-card metric-yellow" data-metric-key="next30Days" title="Click to edit count">
+              <div class="metric-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <div class="metric-body">
+                <span class="metric-title" data-i18n="metricNext30Days">Next 30 Days Expiry</span>
+                <div class="metric-value" id="valNext30Days">112</div>
+                <div class="metric-footer">
+                  <a class="metric-link" data-view-trigger="customers" data-i18n="viewList">View List →</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2 Column Section: Left (Tables) & Right (Widgets) -->
+          <div class="dashboard-columns">
+            <!-- Left Column -->
+            <div class="left-main-column">
+              <!-- Quick Actions Horizontal Bar (Aadi Line) -->
+              <div class="crm-card quick-actions-horizontal-card">
+                <div class="quick-actions-bar-inner">
+                  <div class="quick-actions-bar-title">
+                    <div class="card-title-icon blue">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    </div>
+                    <span data-i18n="quickActionsTitle" style="font-weight: 700; font-size: 15px; color: #0f172a;">Quick Actions</span>
+                  </div>
+                  <div class="quick-actions-body-horizontal">
+                    <button class="quick-action-btn btn-primary-blue" id="btnQuickAddCustomer">
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                      <span data-i18n="btnAddNewCustomer">+ Add New Customer</span>
+                    </button>
+                    <button class="quick-action-btn btn-purple-import" id="btnImportExcel">
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                      <span data-i18n="btnImportCustomers">Import Customers (Excel)</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Today's Calling List Card -->
+              <div class="crm-card" id="calling-list">
+                <div class="crm-card-header">
+                  <div class="crm-card-title-group">
+                    <div class="card-title-icon red">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    </div>
+                    <h2 class="card-title">
+                      <span data-i18n="callingListTitle">Today's Calling List</span>
+                      <span id="callingListCount" style="font-weight: 500; font-size: 14px; color: #64748b;">(26 Customers)</span>
+                    </h2>
+                  </div>
+                  <div class="card-header-actions">
+                    <!-- Master Staff Filter for Admin -->
+                    <div class="staff-filter-bar" id="masterStaffFilterContainer" title="Filter list by Staff member / સ્ટાફ મુજબ ફિલ્ટર">
+                      <span data-i18n="staffFilterLabel">Staff:</span>
+                      <select class="staff-filter-select" id="selectMasterStaffFilter">
+                        <option value="all" data-i18n="allStaffOption">All Staff (Master View)</option>
+                      </select>
+                    </div>
+                    <button class="btn-quick-add" id="btnTableAddCustomer">+ Add</button>
+                    <a class="card-header-link" data-view-trigger="calling-list" data-i18n="viewAll">View All →</a>
+                  </div>
+                </div>
+
+                <!-- Calling List Table -->
+                <div class="table-responsive">
+                  <table class="crm-table">
+                    <thead>
+                      <tr>
+                        <th class="col-num" data-i18n="colNumber">#</th>
+                        <th data-i18n="colCustomerName">Customer Name</th>
+                        <th data-i18n="colVehicle">Vehicle</th>
+                        <th data-i18n="colDocument">Document</th>
+                        <th data-i18n="colExpiryDate">Expiry Date</th>
+                        <th data-i18n="colDaysLeft">Days Left</th>
+                        <th data-i18n="colStatus">Status</th>
+                        <th data-i18n="colEntryBy">Entry By</th>
+                        <th data-i18n="colRemarks">Remarks</th>
+                        <th data-i18n="colActions">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="callingListTableBody">
+                      <!-- Populated via app.js -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Bottom Split Grids: Next 7 Days Expiry & Expired Documents -->
+              <div class="bottom-split-grid">
+                <!-- Next 7 Days Expiry Card -->
+                <div class="crm-card">
+                  <div class="crm-card-header">
+                    <div class="crm-card-title-group">
+                      <div class="card-title-icon orange">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                      </div>
+                      <h3 class="card-title">
+                        <span data-i18n="next7DaysTitle">Next 7 Days Expiry</span>
+                        <span id="next7DaysCount" style="font-weight: 500; font-size: 13.5px; color: #64748b;">(38)</span>
+                      </h3>
+                    </div>
+                    <a class="card-header-link" data-view-trigger="next-7-days" data-i18n="viewAll">View All →</a>
+                  </div>
+                  <div class="table-responsive">
+                    <table class="mini-table">
+                      <thead>
+                        <tr>
+                          <th data-i18n="colCustomerName">Customer</th>
+                          <th data-i18n="colVehicle">Vehicle</th>
+                          <th data-i18n="colDocument">Document</th>
+                          <th data-i18n="colExpiryDate">Expiry Date</th>
+                          <th data-i18n="colDaysLeft">Days Left</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody id="next7DaysTableBody">
+                        <!-- Populated via app.js -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Expired Documents Card -->
+                <div class="crm-card">
+                  <div class="crm-card-header">
+                    <div class="crm-card-title-group">
+                      <div class="card-title-icon red">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                      </div>
+                      <h3 class="card-title">
+                        <span data-i18n="expiredDocsTitle">Expired Documents</span>
+                        <span id="expiredDocsCount" style="font-weight: 500; font-size: 13.5px; color: #dc2626;">(14)</span>
+                      </h3>
+                    </div>
+                    <a class="card-header-link" data-view-trigger="expired-docs" data-i18n="viewAll">View All →</a>
+                  </div>
+                  <div class="table-responsive">
+                    <table class="mini-table">
+                      <thead>
+                        <tr>
+                          <th data-i18n="colCustomerName">Customer</th>
+                          <th data-i18n="colVehicle">Vehicle</th>
+                          <th data-i18n="colDocument">Document</th>
+                          <th data-i18n="colExpiredOn">Expired On</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody id="expiredDocsTableBody">
+                        <!-- Populated via app.js -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column Widgets -->
+            <div class="right-column-stack">
+              <!-- Widget 1: Document Status -->
+              <div class="crm-card">
+                <div class="crm-card-header">
+                  <div class="crm-card-title-group">
+                    <div class="card-title-icon dark">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <h3 class="card-title" data-i18n="documentStatusTitle">Document Status</h3>
+                  </div>
+                </div>
+                <div class="doc-status-list">
+                  <!-- Insurance -->
+                  <div class="doc-status-item" data-view-trigger="documents" data-doc-tab="insurance" title="Click to view insurance records">
+                    <div class="doc-status-left">
+                      <div class="doc-type-icon insurance">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                      </div>
+                      <span class="doc-type-name" data-i18n="docInsurance">Insurance</span>
+                    </div>
+                    <div class="doc-status-right">
+                      <div class="doc-status-counts">
+                        <span class="count-expiring" id="countInsuranceExpiring">48 Expiring</span>
+                        <span class="count-expired" id="countInsuranceExpired">12 Expired</span>
+                      </div>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                  </div>
+
+                  <!-- Fitness -->
+                  <div class="doc-status-item" data-view-trigger="documents" data-doc-tab="fitness" title="Click to view fitness records">
+                    <div class="doc-status-left">
+                      <div class="doc-type-icon fitness">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
+                      </div>
+                      <span class="doc-type-name" data-i18n="docFitness">Fitness</span>
+                    </div>
+                    <div class="doc-status-right">
+                      <div class="doc-status-counts">
+                        <span class="count-expiring" id="countFitnessExpiring" style="color: #10b981;">28 Expiring</span>
+                        <span class="count-expired" id="countFitnessExpired">6 Expired</span>
+                      </div>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                  </div>
+
+                  <!-- PUC -->
+                  <div class="doc-status-item" data-view-trigger="documents" data-doc-tab="puc" title="Click to view PUC records">
+                    <div class="doc-status-left">
+                      <div class="doc-type-icon puc">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+                      </div>
+                      <span class="doc-type-name" data-i18n="docPuc">PUC</span>
+                    </div>
+                    <div class="doc-status-right">
+                      <div class="doc-status-counts">
+                        <span class="count-expiring" id="countPucExpiring" style="color: #9333ea;">36 Expiring</span>
+                        <span class="count-expired" id="countPucExpired">18 Expired</span>
+                      </div>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                  </div>
+
+                  <!-- New Driving Licence -->
+                  <div class="doc-status-item" data-view-trigger="documents" data-doc-tab="new-licence" title="Click to view New Driving Licence records">
+                    <div class="doc-status-left">
+                      <div class="doc-type-icon newlicence">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><line x1="15" y1="8" x2="17" y2="8"/><line x1="15" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg>
+                      </div>
+                      <span class="doc-type-name" data-i18n="docNewDrivingLicence">New Driving Licence</span>
+                    </div>
+                    <div class="doc-status-right">
+                      <div class="doc-status-counts">
+                        <span class="count-expiring" id="countNewLicenceExpiring" style="color: #d97706;">14 Active</span>
+                        <span class="count-expired" id="countNewLicenceExpired">2 Expired</span>
+                      </div>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                  </div>
+
+                  <!-- Renewal Licence -->
+                  <div class="doc-status-item" data-view-trigger="documents" data-doc-tab="renewal-licence" title="Click to view Renewal Licence records">
+                    <div class="doc-status-left">
+                      <div class="doc-type-icon renewallicence">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l6.73-6.19"/></svg>
+                      </div>
+                      <span class="doc-type-name" data-i18n="docRenewalLicence">Renewal Licence</span>
+                    </div>
+                    <div class="doc-status-right">
+                      <div class="doc-status-counts">
+                        <span class="count-expiring" id="countRenewalLicenceExpiring" style="color: #ea580c;">22 Expiring</span>
+                        <span class="count-expired" id="countRenewalLicenceExpired">4 Expired</span>
+                      </div>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                  </div>
+
+                  <!-- RC Transfer -->
+                  <div class="doc-status-item" data-view-trigger="documents" data-doc-tab="rc-transfer" title="Click to view RC Transfer records">
+                    <div class="doc-status-left">
+                      <div class="doc-type-icon rctransfer">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                      </div>
+                      <span class="doc-type-name" data-i18n="docRcTransfer">RC Transfer</span>
+                    </div>
+                    <div class="doc-status-right">
+                      <div class="doc-status-counts">
+                        <span class="count-expiring" id="countRcTransferExpiring" style="color: #4f46e5;">18 In Progress</span>
+                        <span class="count-expired" id="countRcTransferExpired">3 Pending</span>
+                      </div>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                  </div>
+
+                  <!-- Vehicle Passing -->
+                  <div class="doc-status-item" data-view-trigger="documents" data-doc-tab="vehicle-passing" title="Click to view Vehicle Passing records">
+                    <div class="doc-status-left">
+                      <div class="doc-type-icon vehiclepassing">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 11 17 15 13"/></svg>
+                      </div>
+                      <span class="doc-type-name" data-i18n="docVehiclePassing">Vehicle Passing</span>
+                    </div>
+                    <div class="doc-status-right">
+                      <div class="doc-status-counts">
+                        <span class="count-expiring" id="countVehiclePassingExpiring" style="color: #0d9488;">16 Expiring</span>
+                        <span class="count-expired" id="countVehiclePassingExpired">5 Expired</span>
+                      </div>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Widget 2: Recent Activities -->
+              <div class="crm-card">
+                <div class="crm-card-header">
+                  <div class="crm-card-title-group">
+                    <div class="card-title-icon dark">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <h3 class="card-title" data-i18n="recentActivitiesTitle">Recent Activities</h3>
+                  </div>
+                  <a class="card-header-link" data-view-trigger="activities" data-i18n="viewAll">View All →</a>
+                </div>
+                <div class="recent-activities-list" id="recentActivitiesList">
+                  <!-- Populated via app.js -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================================================================
+             VIEW 2: CUSTOMERS FULL DATABASE (With 2W/4W Filter & Excel Export)
+             =================================================================== -->
+        <div class="view-section" id="viewCustomers">
+          <div class="view-header-bar">
+            <div class="view-header-left">
+              <button class="btn-back-dashboard" data-action="back-dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                <span data-i18n="backToDashboard">← Back to Dashboard</span>
+              </button>
+              <div class="view-title-wrap">
+                <h2 class="view-main-title">
+                  <span>👥</span> <span data-i18n="navCustomers">Customers</span>
+                  <span id="custTotalCountBadge" style="font-size: 14px; font-weight: 600; color: #64748b;">(1,248)</span>
+                </h2>
+                <p class="view-subtitle" data-i18n="customersViewSubtitle">Manage your full vehicle and customer database with Two-Wheeler / Four-Wheeler filters.</p>
+              </div>
+            </div>
+            <div class="view-header-actions">
+              <!-- Vehicle Filter -->
+              <div class="vehicle-filter-tabs">
+                <button class="v-filter-btn active" data-vfilter="all" data-vtable="customers">
+                  <span data-i18n="filterAll">All Vehicles</span>
+                </button>
+                <button class="v-filter-btn" data-vfilter="2-wheeler" data-vtable="customers">
+                  <span>🏍️</span> <span data-i18n="vType2W">Two Wheeler</span>
+                </button>
+                <button class="v-filter-btn" data-vfilter="4-wheeler" data-vtable="customers">
+                  <span>🚗</span> <span data-i18n="vType4W">Four Wheeler</span>
+                </button>
+                <button class="v-filter-btn" data-vfilter="commercial" data-vtable="customers">
+                  <span>🚚</span> <span data-i18n="vTypeComm">Commercial</span>
+                </button>
+              </div>
+              <button class="btn-primary" id="btnCustPageAdd" style="display: flex; align-items: center; gap: 6px;">
+                <span>+</span> <span data-i18n="btnAddNewCustomer">Add Customer</span>
+              </button>
+              <button class="btn-secondary" id="btnExportCustExcel" style="display: flex; align-items: center; gap: 6px; color: #166534; border-color: #bbf7d0; background: #f0fdf4;">
+                <span>📊</span> <span>Export Excel (.xlsx)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Full Customers Table -->
+          <div class="crm-card">
+            <div class="table-responsive">
+              <table class="crm-table">
+                <thead>
+                  <tr>
+                    <th class="col-num">#</th>
+                    <th data-i18n="colCustomerName">Customer Name</th>
+                    <th data-i18n="mobileNumberLabel">Mobile No.</th>
+                    <th data-i18n="colVehicle">Vehicle</th>
+                    <th data-i18n="colDocument">Document</th>
+                    <th data-i18n="colExpiryDate">Expiry Date</th>
+                    <th data-i18n="colDaysLeft">Days Left</th>
+                    <th data-i18n="colStatus">Status</th>
+                    <th data-i18n="colEntryBy">Entry By</th>
+                    <th data-i18n="colRemarks">Remarks</th>
+                    <th data-i18n="colActions">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="fullCustomersTableBody">
+                  <!-- Populated via app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================================================================
+             VIEW 3: DOCUMENTS VIEW (Insurance, Fitness, PUC, Expired)
+             =================================================================== -->
+        <div class="view-section" id="viewDocuments">
+          <div class="view-header-bar">
+            <div class="view-header-left">
+              <button class="btn-back-dashboard" data-action="back-dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                <span data-i18n="backToDashboard">← Back to Dashboard</span>
+              </button>
+              <div class="view-title-wrap">
+                <h2 class="view-main-title">
+                  <span>📄</span> <span data-i18n="navDocuments">Documents Management</span>
+                </h2>
+                <p class="view-subtitle" data-i18n="documentsViewSubtitle">Track all vehicle Insurance, Fitness, PUC, and Expired certificates.</p>
+              </div>
+            </div>
+            <div class="view-header-actions">
+              <div class="vehicle-filter-tabs">
+                <button class="v-filter-btn active" data-vfilter="all" data-vtable="documents">
+                  <span data-i18n="filterAll">All Vehicles</span>
+                </button>
+                <button class="v-filter-btn" data-vfilter="2-wheeler" data-vtable="documents">
+                  <span>🏍️</span> <span data-i18n="vType2W">Two Wheeler</span>
+                </button>
+                <button class="v-filter-btn" data-vfilter="4-wheeler" data-vtable="documents">
+                  <span>🚗</span> <span data-i18n="vType4W">Four Wheeler</span>
+                </button>
+                <button class="v-filter-btn" data-vfilter="commercial" data-vtable="documents">
+                  <span>🚚</span> <span data-i18n="vTypeComm">Commercial</span>
+                </button>
+              </div>
+              <button class="btn-primary" id="btnManageDocTypes" style="display: flex; align-items: center; gap: 6px; background: #4f46e5; border-color: #4338ca;">
+                <span>⚙️</span> <span data-i18n="manageDocTypes">Manage Document Types</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="crm-card" style="padding: 20px;">
+            <!-- Document Sub-Tabs -->
+            <div class="doc-filter-tabs" id="docFilterTabsContainer">
+              <button class="doc-tab-btn active" data-tab-name="all">
+                <span data-i18n="filterAllDocs">All Documents</span>
+                <span class="tab-count" id="docTabCountAll">26</span>
+              </button>
+              <button class="doc-tab-btn" data-tab-name="insurance">
+                <span data-i18n="docInsurance">Insurance</span>
+                <span class="tab-count" id="docTabCountInsurance">10</span>
+              </button>
+              <button class="doc-tab-btn" data-tab-name="fitness">
+                <span data-i18n="docFitness">Fitness</span>
+                <span class="tab-count" id="docTabCountFitness">6</span>
+              </button>
+              <button class="doc-tab-btn" data-tab-name="puc">
+                <span data-i18n="docPuc">PUC</span>
+                <span class="tab-count" id="docTabCountPuc">10</span>
+              </button>
+              <button class="doc-tab-btn" data-tab-name="new-licence">
+                <span data-i18n="docNewDrivingLicence">New Driving Licence</span>
+                <span class="tab-count" id="docTabCountNewLicence">0</span>
+              </button>
+              <button class="doc-tab-btn" data-tab-name="renewal-licence">
+                <span data-i18n="docRenewalLicence">Renewal Licence</span>
+                <span class="tab-count" id="docTabCountRenewalLicence">0</span>
+              </button>
+              <button class="doc-tab-btn" data-tab-name="rc-transfer">
+                <span data-i18n="docRcTransfer">RC Transfer</span>
+                <span class="tab-count" id="docTabCountRcTransfer">0</span>
+              </button>
+              <button class="doc-tab-btn" data-tab-name="vehicle-passing">
+                <span data-i18n="docVehiclePassing">Vehicle Passing</span>
+                <span class="tab-count" id="docTabCountVehiclePassing">0</span>
+              </button>
+              <button class="doc-tab-btn" data-tab-name="expired">
+                <span data-i18n="navExpired">Expired</span>
+                <span class="tab-count" id="docTabCountExpired" style="background:#fee2e2; color:#b91c1c;">5</span>
+              </button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="crm-table">
+                <thead>
+                  <tr>
+                    <th class="col-num">#</th>
+                    <th data-i18n="colCustomerName">Customer Name</th>
+                    <th data-i18n="colVehicle">Vehicle</th>
+                    <th data-i18n="colDocument">Document</th>
+                    <th data-i18n="colExpiryDate">Expiry Date</th>
+                    <th data-i18n="colDaysLeft">Days Left</th>
+                    <th data-i18n="colStatus">Status</th>
+                    <th data-i18n="colActions">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="documentsTableBody">
+                  <!-- Populated via app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================================================================
+             VIEW 4: CALLING LIST & FOLLOW-UPS (Detailed Dedicated View)
+             =================================================================== -->
+        <div class="view-section" id="viewCallingList">
+          <div class="view-header-bar">
+            <div class="view-header-left">
+              <button class="btn-back-dashboard" data-action="back-dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                <span data-i18n="backToDashboard">← Back to Dashboard</span>
+              </button>
+              <div class="view-title-wrap">
+                <h2 class="view-main-title">
+                  <span>📞</span> <span data-i18n="callingListTitle">Today's Calling List (Full View)</span>
+                </h2>
+                <p class="view-subtitle" data-i18n="callingViewSubtitle">Call, WhatsApp, and record document renewal follow-ups for all due vehicles.</p>
+              </div>
+            </div>
+            <div class="view-header-actions">
+              <div class="vehicle-filter-tabs">
+                <button class="v-filter-btn active" data-vfilter="all" data-vtable="calling">
+                  <span data-i18n="filterAll">All</span>
+                </button>
+                <button class="v-filter-btn" data-vfilter="2-wheeler" data-vtable="calling">
+                  <span>🏍️ 2W</span>
+                </button>
+                <button class="v-filter-btn" data-vfilter="4-wheeler" data-vtable="calling">
+                  <span>🚗 4W</span>
+                </button>
+                <button class="v-filter-btn" data-vfilter="commercial" data-vtable="calling">
+                  <span>🚚 Commercial</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="crm-card">
+            <div class="table-responsive">
+              <table class="crm-table">
+                <thead>
+                  <tr>
+                    <th class="col-num">#</th>
+                    <th data-i18n="colCustomerName">Customer Name</th>
+                    <th data-i18n="colVehicle">Vehicle</th>
+                    <th data-i18n="colDocument">Document</th>
+                    <th data-i18n="colExpiryDate">Expiry Date</th>
+                    <th data-i18n="colDaysLeft">Days Left</th>
+                    <th data-i18n="colStatus">Status</th>
+                    <th data-i18n="colEntryBy">Entry By</th>
+                    <th data-i18n="colActions">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="callingListFullTableBody">
+                  <!-- Populated via app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================================================================
+             VIEW 5: NEXT 7 DAYS EXPIRY VIEW
+             =================================================================== -->
+        <div class="view-section" id="viewNext7Days">
+          <div class="view-header-bar">
+            <div class="view-header-left">
+              <button class="btn-back-dashboard" data-action="back-dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                <span data-i18n="backToDashboard">← Back to Dashboard</span>
+              </button>
+              <div class="view-title-wrap">
+                <h2 class="view-main-title">
+                  <span>📅</span> <span data-i18n="next7DaysTitle">Next 7 Days Expiry</span>
+                </h2>
+                <p class="view-subtitle" data-i18n="next7DaysSubtitle">Vehicles with documents expiring within the next week.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="crm-card">
+            <div class="table-responsive">
+              <table class="crm-table">
+                <thead>
+                  <tr>
+                    <th class="col-num">#</th>
+                    <th data-i18n="colCustomerName">Customer Name</th>
+                    <th data-i18n="colVehicle">Vehicle</th>
+                    <th data-i18n="colDocument">Document</th>
+                    <th data-i18n="colExpiryDate">Expiry Date</th>
+                    <th data-i18n="colDaysLeft">Days Left</th>
+                    <th data-i18n="colActions">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="next7DaysFullTableBody">
+                  <!-- Populated via app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================================================================
+             VIEW 6: EXPIRED DOCUMENTS VIEW
+             =================================================================== -->
+        <div class="view-section" id="viewExpiredDocs">
+          <div class="view-header-bar">
+            <div class="view-header-left">
+              <button class="btn-back-dashboard" data-action="back-dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                <span data-i18n="backToDashboard">← Back to Dashboard</span>
+              </button>
+              <div class="view-title-wrap">
+                <h2 class="view-main-title">
+                  <span style="color:#ef4444;">⚠️</span> <span data-i18n="expiredDocsTitle">Expired Documents</span>
+                </h2>
+                <p class="view-subtitle" data-i18n="expiredDocsSubtitle">Action required: Vehicles with expired documents requiring immediate renewal.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="crm-card">
+            <div class="table-responsive">
+              <table class="crm-table">
+                <thead>
+                  <tr>
+                    <th class="col-num">#</th>
+                    <th data-i18n="colCustomerName">Customer Name</th>
+                    <th data-i18n="colVehicle">Vehicle</th>
+                    <th data-i18n="colDocument">Document</th>
+                    <th data-i18n="colExpiredOn">Expired On</th>
+                    <th data-i18n="colActions">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="expiredDocsFullTableBody">
+                  <!-- Populated via app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================================================================
+             VIEW 7: REMINDERS CENTER
+             =================================================================== -->
+        <div class="view-section" id="viewReminders">
+          <div class="view-header-bar">
+            <div class="view-header-left">
+              <button class="btn-back-dashboard" data-action="back-dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                <span data-i18n="backToDashboard">← Back to Dashboard</span>
+              </button>
+              <div class="view-title-wrap">
+                <h2 class="view-main-title">
+                  <span>🔔</span> <span data-i18n="navReminders">Reminders Center</span>
+                </h2>
+                <p class="view-subtitle" data-i18n="remindersSubtitle">Automated and manual WhatsApp/SMS reminders log and templates.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="crm-card">
+            <div class="crm-card-header">
+              <h3 class="card-title" data-i18n="recentActivitiesTitle">Dispatched Reminders Log</h3>
+            </div>
+            <div class="recent-activities-list" id="remindersFullList" style="padding: 16px 22px;">
+              <!-- Populated via app.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================================================================
+             VIEW 8: BUSINESS REPORTS & ANALYTICS (2W vs 4W Statistics)
+             =================================================================== -->
+        <div class="view-section" id="viewReports">
+          <div class="view-header-bar">
+            <div class="view-header-left">
+              <button class="btn-back-dashboard" data-action="back-dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                <span data-i18n="backToDashboard">← Back to Dashboard</span>
+              </button>
+              <div class="view-title-wrap">
+                <h2 class="view-main-title">
+                  <span>📊</span> <span data-i18n="navReports">Reports & Vehicle Analytics</span>
+                </h2>
+                <p class="view-subtitle" data-i18n="reportsSubtitle">Complete performance overview by Two-Wheeler vs Four-Wheeler and document renewals.</p>
+              </div>
+            </div>
+            <div class="view-header-actions">
+              <button class="btn-secondary" id="btnExportReportsExcel" style="background:#f0fdf4; border-color:#bbf7d0; color:#166534;">
+                <span>📊 Export Full Report (.xlsx)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 4 Analytics Overview Stat Cards -->
+          <div class="reports-stats-grid">
+            <div class="report-stat-box">
+              <div class="report-stat-title">
+                <span>🏍️ Two Wheelers</span>
+                <span id="stat2WPercent" style="color: #b45309; font-weight: 700;">45%</span>
+              </div>
+              <div class="report-stat-val" id="stat2WCount" style="color: #b45309;">562</div>
+              <div style="font-size: 11.5px; color: #64748b;">Active Bikes & Scooters</div>
+              <div class="report-progress-wrap">
+                <div class="report-progress-bar" id="stat2WBar" style="width: 45%; background: #f59e0b;"></div>
+              </div>
+            </div>
+
+            <div class="report-stat-box">
+              <div class="report-stat-title">
+                <span>🚗 Four Wheelers</span>
+                <span id="stat4WPercent" style="color: #0369a1; font-weight: 700;">42%</span>
+              </div>
+              <div class="report-stat-val" id="stat4WCount" style="color: #0284c7;">524</div>
+              <div style="font-size: 11.5px; color: #64748b;">Private Cars & SUVs</div>
+              <div class="report-progress-wrap">
+                <div class="report-progress-bar" id="stat4WBar" style="width: 42%; background: #0284c7;"></div>
+              </div>
+            </div>
+
+            <div class="report-stat-box">
+              <div class="report-stat-title">
+                <span>🚚 Commercial</span>
+                <span id="statCommPercent" style="color: #7e22ce; font-weight: 700;">13%</span>
+              </div>
+              <div class="report-stat-val" id="statCommCount" style="color: #9333ea;">162</div>
+              <div style="font-size: 11.5px; color: #64748b;">Trucks, Autos & Vans</div>
+              <div class="report-progress-wrap">
+                <div class="report-progress-bar" id="statCommBar" style="width: 13%; background: #9333ea;"></div>
+              </div>
+            </div>
+
+            <div class="report-stat-box">
+              <div class="report-stat-title">
+                <span> Renewal Rate</span>
+                <span style="color: #10b981; font-weight: 700;">88.4%</span>
+              </div>
+              <div class="report-stat-val" style="color: #059669;">88.4%</div>
+              <div style="font-size: 11.5px; color: #64748b;">Successful Follow-up Renewals</div>
+              <div class="report-progress-wrap">
+                <div class="report-progress-bar" style="width: 88.4%; background: #10b981;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Document Distribution Comparison -->
+          <div class="crm-card" style="padding: 24px;">
+            <h3 class="card-title" style="margin-bottom: 16px;">
+              <span>📑 Document Expiry Breakdown</span>
+            </h3>
+            <div id="reportsDocBreakdownContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+              <!-- Dynamically populated via app.js -->
+            </div>
+          </div>
+
+          <!-- Staff WhatsApp / SMS & Performance Summary -->
+          <div class="crm-card staff-perf-card" style="padding: 24px; margin-top: 20px;">
+            <div class="crm-card-header" style="padding: 0 0 16px 0; margin-bottom: 16px;">
+              <div class="crm-card-title-group">
+                <div class="card-title-icon green">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <h3 class="card-title">
+                  <span data-i18n="staffPerfTitle">Staff WhatsApp / SMS & Performance Summary</span>
+                  <span style="font-size: 13px; color: #64748b; font-weight: 500;" data-i18n="staffPerfSub">(Live Team Tracking)</span>
+                </h3>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="staff-perf-table">
+                <thead>
+                  <tr>
+                    <th data-i18n="thStaffMember">Staff Member</th>
+                    <th data-i18n="thAssigned">Assigned</th>
+                    <th data-i18n="thCallsCompleted">WhatsApp / SMS Done</th>
+                    <th data-i18n="thRenewed">Renewed</th>
+                    <th data-i18n="thConversionRate">Progress</th>
+                    <th data-i18n="thStatus">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="staffPerfTableBody">
+                  <!-- Populated via app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================================================================
+             VIEW 9: ACTIVITY HISTORY FULL VIEW
+             =================================================================== -->
+        <div class="view-section" id="viewActivities">
+          <div class="view-header-bar">
+            <div class="view-header-left">
+              <button class="btn-back-dashboard" data-action="back-dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                <span data-i18n="backToDashboard">← Back to Dashboard</span>
+              </button>
+              <div class="view-title-wrap">
+                <h2 class="view-main-title">
+                  <span>⏱️</span> <span data-i18n="recentActivitiesTitle">Activity History</span>
+                </h2>
+                <p class="view-subtitle">Detailed timeline of WhatsApp reminders, phone calls, and customer updates.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="crm-card">
+            <div class="recent-activities-list" id="activitiesFullList" style="padding: 16px 22px;">
+              <!-- Populated via app.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- App Footer -->
+        <footer class="app-footer">
+          <div data-i18n="allRightsReserved">© 2026 Momai Enterprise CRM. All rights reserved.</div>
+          <div class="footer-slogan" data-i18n="footerSlogan">Customers Today. Safer Journeys Tomorrow.</div>
+        </footer>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal: Add / Edit Customer with 2-Wheeler / 4-Wheeler Selector -->
+  <div class="modal-overlay" id="customerModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="customerModalTitle" data-i18n="addCustomerModalTitle">Add New Customer</h3>
+        <button class="modal-close-btn" type="button">&times;</button>
+      </div>
+      <form id="customerForm">
+        <div class="modal-body">
+          <!-- Vehicle Type Selector: Two Wheeler / Four Wheeler / Commercial -->
+          <div class="form-group">
+            <label class="form-label" data-i18n="vehicleTypeLabel">Vehicle Type / વાહનનો પ્રકાર</label>
+            <div class="vehicle-type-selector-grid">
+              <div class="v-type-card selected" data-vtype="2-wheeler" id="vType2W">
+                <div class="v-type-icon">🏍️</div>
+                <div class="v-type-label" data-i18n="vType2W">Two Wheeler</div>
+                <div class="v-type-sub">Bike / Scooter</div>
+              </div>
+              <div class="v-type-card" data-vtype="4-wheeler" id="vType4W">
+                <div class="v-type-icon">🚗</div>
+                <div class="v-type-label" data-i18n="vType4W">Four Wheeler</div>
+                <div class="v-type-sub">Car / SUV</div>
+              </div>
+              <div class="v-type-card" data-vtype="commercial" id="vTypeComm">
+                <div class="v-type-icon">🚚</div>
+                <div class="v-type-label" data-i18n="vTypeComm">Commercial</div>
+                <div class="v-type-sub">Truck / Auto</div>
+              </div>
+            </div>
+            <input type="hidden" id="inputCustVehicleType" value="2-wheeler">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" data-i18n="customerNameLabel">Customer Name</label>
+            <input type="text" id="inputCustName" class="form-input" placeholder="e.g. Rajesh Patel" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="mobileNumberLabel">Mobile Phone Number</label>
+            <input type="tel" id="inputCustPhone" class="form-input" placeholder="e.g. 9825012345">
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="vehicleNumberLabel">Vehicle Registration No.</label>
+            <input type="text" id="inputCustVehicle" class="form-input" placeholder="e.g. GJ01AB1234" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="documentTypeLabel">Document Type</label>
+            <select id="selectCustDoc" class="form-select">
+              <option value="Insurance">Insurance</option>
+              <option value="Fitness">Fitness</option>
+              <option value="PUC">PUC</option>
+              <option value="New Driving Licence">New Driving Licence</option>
+              <option value="Renewal Licence">Renewal Licence</option>
+              <option value="RC Transfer">RC Transfer</option>
+              <option value="Vehicle Passing">Vehicle Passing</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="expiryDateLabel">Expiry Date (તારીખ પસંદ કરો)</label>
+            <input type="date" id="inputCustExpiry" class="form-input" required>
+            <small class="calc-hint" id="calcHintText">📅 Auto-calculates Days Left & Status instantly / આપોઆપ બાકી દિવસો અને સ્થિતિ ગણશે</small>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="colDaysLeft">Days Left (બાકી દિવસો)</label>
+            <input type="text" id="inputCustDays" class="form-input" placeholder="e.g. 6 Days or Today">
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="statusLabel">Status (સ્થિતિ)</label>
+            <select id="selectCustStatus" class="form-select">
+              <option value="Due Soon">Due Soon / નજીક છે</option>
+              <option value="Expiry Today">Expiry Today / આજે સમાપ્ત</option>
+              <option value="Upcoming">Upcoming / આગામી</option>
+              <option value="Expired">Expired / મુદત પૂરી</option>
+              <option value="Renewed">Renewed / નવીકરણ થયેલ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="assignedStaffLabel">Assigned Staff / Telecaller (કર્મચારી)</label>
+            <select id="selectCustStaff" class="form-select">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="lblCustRemarks">Calling Notes & Remarks (વાતચીતની નોંધ)</label>
+            <input type="text" id="inputCustRemarks" class="form-input" placeholder="e.g. Call back tomorrow 11 AM, WhatsApp quote sent, payment pending...">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary modal-cancel-btn" data-i18n="cancel">Cancel</button>
+          <button type="submit" class="btn-primary" data-i18n="saveChanges">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Bulk Reminders -->
+  <div class="modal-overlay" id="bulkModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" data-i18n="bulkReminderModalTitle">Send Bulk Reminder</h3>
+        <button class="modal-close-btn" type="button">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" data-i18n="channelLabel">Reminder Channel</label>
+          <select id="bulkChannel" class="form-select">
+            <option value="whatsapp">WhatsApp</option>
+            <option value="sms">SMS Text</option>
+            <option value="both">WhatsApp + SMS</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="targetAudienceLabel">Target Audience</label>
+          <select id="bulkAudience" class="form-select">
+            <option value="today">Expiring Today</option>
+            <option value="7days">Next 7 Days Expiry</option>
+            <option value="expired">All Expired Documents</option>
+            <option value="2w">Only Two Wheelers (2W)</option>
+            <option value="4w">Only Four Wheelers (4W)</option>
+            <option value="all">All Calling List (26 Customers)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="previewMessageLabel">Message Preview</label>
+          <textarea id="bulkMsgPreview" class="form-textarea" rows="5" readonly></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary modal-cancel-btn" data-i18n="cancel">Cancel</button>
+        <button type="button" class="btn-primary" id="btnSendBulkConfirm" data-i18n="send">Send Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Import / Export (.xlsx & .csv) / Settings -->
+  <div class="modal-overlay" id="importModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" data-i18n="importModalTitle">Import / Export Customer Data</h3>
+        <button class="modal-close-btn" type="button">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Export options -->
+        <div class="form-group">
+          <label class="form-label" style="font-weight:700;">1. Export Customer Data</label>
+          <div style="display: flex; gap: 10px; margin-top: 6px;">
+            <button type="button" class="quick-action-btn btn-success-green" id="btnExportExcelFile" style="flex:1;">
+              📊 Export to Excel (.xlsx)
+            </button>
+            <button type="button" class="quick-action-btn btn-primary-blue" id="btnExportCsv" style="flex:1;">
+              📄 Export to CSV
+            </button>
+          </div>
+        </div>
+
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #e2e8f0;">
+
+        <!-- Import options -->
+        <div class="form-group">
+          <label class="form-label" style="font-weight:700;">2. Upload File (Excel .xlsx or .csv)</label>
+          <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="form-input">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+            <small style="color: #64748b; font-size: 11px;">Supports Excel (.xlsx) and CSV files</small>
+            <button type="button" id="btnDownloadSampleExcel" style="background:none; border:none; color:var(--primary); font-size:11.5px; font-weight:700; cursor:pointer; text-decoration:underline;">
+              📥 Download Sample Excel Template
+            </button>
+          </div>
+        </div>
+
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #e2e8f0;">
+
+        <!-- Complete Database Backup & Restore -->
+        <div class="form-group">
+          <label class="form-label" style="font-weight:700;">3. Full Database Backup & Restore / સંપૂર્ણ બેકઅપ</label>
+          <div style="display: flex; gap: 10px; margin-top: 6px;">
+            <button type="button" class="quick-action-btn btn-primary-blue" id="btnDownloadBackup" style="flex:1;">
+              💾 Download Full Backup (.json)
+            </button>
+            <button type="button" class="quick-action-btn btn-purple-import" id="btnRestoreBackupTrigger" style="flex:1;">
+              🔄 Restore from Backup
+            </button>
+            <input type="file" id="backupFileInput" accept=".json" style="display:none;">
+          </div>
+          <small style="color: #64748b; font-size: 11px; margin-top: 6px; display: block;">
+            ✓ All your data is also automatically saved to your computer hard drive in <strong>adminktc\database.json</strong> and <strong>adminktc\backups\</strong> folder!
+          </small>
+        </div>
+
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #e2e8f0;">
+
+        <!-- Reset option -->
+        <div class="form-group">
+          <label class="form-label" style="font-weight:700; color:#dc2626;">4. Reset All Data</label>
+          <button type="button" class="btn-secondary" id="btnResetDefaults" style="color: #dc2626; border-color: #fecaca; width:100%; text-align:center;" data-i18n="resetDefaultBtn">
+            Reset to Default Data
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary modal-cancel-btn" data-i18n="cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Employee & Staff Profile Management -->
+  <div class="modal-overlay" id="employeeModal">
+    <div class="modal-box" style="max-width: 560px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="employeeModalTitle" data-i18n="employeeModalTitle">👥 Employee & Staff Profiles (કર્મચારી પ્રોફાઇલ)</h3>
+        <button class="modal-close-btn" type="button">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom: 16px;">
+          <div id="employeeModalSubtitle" style="font-weight: 700; font-size: 13px; margin-bottom: 8px; color: var(--text-main);" data-i18n="switchActiveProfileTitle">
+            Current Active Profile / સક્રિય કર્મચારી પ્રોફાઇલ:
+          </div>
+          <div class="employee-list-grid" id="employeeCardsContainer">
+            <!-- Dynamically populated by JS -->
+          </div>
+        </div>
+
+        <!-- Add New Employee Form (Admin Only) -->
+        <div id="sectionAddNewEmployee">
+          <hr style="margin: 18px 0; border: none; border-top: 1px solid #e2e8f0;">
+          <div style="font-weight: 700; font-size: 13.5px; margin-bottom: 12px; color: var(--text-main);" data-i18n="addNewEmployeeTitle">
+            ➕ Add New Staff / Telecaller (નવો કર્મચારી ઉમેરો)
+          </div>
+          <form id="newEmployeeForm">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="form-group" style="margin-bottom: 8px;">
+                <label class="form-label" data-i18n="empNameLabel">Staff Name</label>
+                <input type="text" id="inputNewEmpName" class="form-input" placeholder="e.g. Rahul Sharma" required>
+              </div>
+              <div class="form-group" style="margin-bottom: 8px;">
+                <label class="form-label" data-i18n="empRoleLabel">Role / હોદ્દો</label>
+                <select id="selectNewEmpRole" class="form-select">
+                  <option value="Telecaller">Telecaller / કોલર</option>
+                  <option value="Manager">Manager / મેનેજર</option>
+                  <option value="Admin">Admin / એડમિન</option>
+                </select>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="form-group" style="margin-bottom: 8px;">
+                <label class="form-label" data-i18n="empPhoneLabel">Phone Number</label>
+                <input type="tel" id="inputNewEmpPhone" class="form-input" placeholder="e.g. 98250 11111">
+              </div>
+              <div class="form-group" style="margin-bottom: 8px;">
+                <label class="form-label" data-i18n="empEmailLabel">Email / ID</label>
+                <input type="text" id="inputNewEmpEmail" class="form-input" placeholder="e.g. rahul@momai.com">
+              </div>
+            </div>
+            <!-- Login Credentials for the new employee -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f1f5f9; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #e2e8f0;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" data-i18n="empUsernameLabel" style="color:#0369a1; font-weight:700;">Login User ID / યુઝર ID</label>
+                <input type="text" id="inputNewEmpUsername" class="form-input" placeholder="e.g. rahul" required>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" data-i18n="empPasswordLabel" style="color:#0369a1; font-weight:700;">Password / પાસવર્ડ</label>
+                <input type="text" id="inputNewEmpPassword" class="form-input" placeholder="e.g. 1234" required>
+              </div>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 6px;" data-i18n="btnAddEmployeeBtn">
+              + Add Staff Member
+            </button>
+          </form>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary modal-cancel-btn" data-i18n="cancel">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Edit / Rename Profile -->
+  <div class="modal-overlay" id="modalEditProfile">
+    <div class="modal-box" style="max-width: 480px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">✏️</span>
+          <h3 class="modal-title" id="modalEditProfileTitle" data-i18n="editProfileModalTitle">Edit Profile / પ્રોફાઇલ સંપાદિત કરો</h3>
+        </div>
+        <button class="modal-close-btn" id="btnCloseEditProfileModal" type="button">&times;</button>
+      </div>
+      <form id="formEditProfile">
+        <input type="hidden" id="editProfileEmpId">
+        <div class="modal-body" style="padding: 20px;">
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label" for="editProfileName" data-i18n="empNameLabel" style="font-weight: 700;">Full Name (Rename) / પૂરું નામ</label>
+            <input type="text" id="editProfileName" class="form-input" placeholder="e.g. Sabir Ajmeri" required>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+            <div class="form-group" id="editProfileRoleGroup" style="margin-bottom: 0;">
+              <label class="form-label" for="editProfileRole" data-i18n="empRoleLabel" style="font-weight: 700;">Role / હોદ્દો</label>
+              <select id="editProfileRole" class="form-select">
+                <option value="Admin">Admin / એડમિન</option>
+                <option value="Manager">Manager / મેનેજર</option>
+                <option value="Telecaller">Telecaller / કોલર</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="editProfilePhone" data-i18n="empPhoneLabel" style="font-weight: 700;">Phone Number / મોબાઇલ</label>
+              <input type="tel" id="editProfilePhone" class="form-input" placeholder="+91 99250 23570">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label" for="editProfileEmail" data-i18n="empEmailLabel" style="font-weight: 700;">Email ID / ઇમેઇલ</label>
+            <input type="email" id="editProfileEmail" class="form-input" placeholder="sabir@momai.com">
+          </div>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 8px;">
+            <div style="font-size: 12px; font-weight: 700; color: #0369a1; margin-bottom: 8px;">🔑 Login Credentials:</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="editProfileUsername" style="font-size: 11.5px; font-weight: 600;">User ID</label>
+                <input type="text" id="editProfileUsername" class="form-input" style="padding: 8px 10px; font-size: 13px;" required>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="editProfilePassword" style="font-size: 11.5px; font-weight: 600;">Password</label>
+                <input type="text" id="editProfilePassword" class="form-input" style="padding: 8px 10px; font-size: 13px;" required>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px;">
+          <button type="button" class="btn-secondary modal-cancel-btn" id="btnCancelEditProfileModal" data-i18n="cancel">Cancel</button>
+          <button type="submit" class="btn-primary" style="background: #4f46e5; border-color: #4338ca;" data-i18n="saveChanges">Save Profile</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Customer Calling & Contact -->
+  <div class="modal-overlay" id="callModal">
+    <div class="modal-box" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <span>📞</span> <span data-i18n="callModalTitle">Call Customer / ગ્રાહકને કૉલ કરો</span>
+        </h3>
+        <button class="modal-close-btn" type="button">&times;</button>
+      </div>
+      <div class="modal-body" style="text-align: center; padding: 24px 20px;">
+        <div style="width: 60px; height: 60px; border-radius: 50%; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px auto;">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </div>
+        <h3 id="callModalCustName" style="font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">Rajesh Patel</h3>
+        <div style="font-size: 13px; color: #64748b; margin-bottom: 12px;">
+          Vehicle: <strong id="callModalCustVeh" style="color: #0284c7;">GJ01AB1234</strong> • <span id="callModalCustDoc">Insurance</span>
+        </div>
+        <div style="background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 10px; padding: 12px; margin-bottom: 20px;">
+          <div style="font-size: 12px; color: #64748b;">Phone Number / મોબાઇલ નંબર:</div>
+          <a id="callModalPhoneLink" href="tel:9825012345" style="font-size: 22px; font-weight: 800; color: #059669; text-decoration: none; display: block; margin-top: 4px;">
+            +91 98250 12345
+          </a>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <a id="callModalDialBtn" href="tel:9825012345" class="btn-primary" style="background: #16a34a; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; padding: 12px; border-radius: 8px;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span data-i18n="btnDialNow">📞 Dial Call Now / કૉલ લગાવો</span>
+          </a>
+          <button type="button" class="btn-secondary" id="btnCopyCallPhone" style="font-weight: 600; padding: 10px;">
+            📋 <span data-i18n="btnCopyPhone">Copy Mobile Number / નંબર કોપી કરો</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary modal-cancel-btn" data-i18n="cancel">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Quick Calling Remarks -->
+  <div class="modal-overlay" id="quickRemarkModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <span>💬</span> <span data-i18n="quickRemarkModalTitle">Calling Notes & Remarks</span>
+        </h3>
+        <button class="modal-close-btn" type="button">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size: 13px; color: #64748b; margin-bottom: 12px;">
+          Customer: <strong id="quickRemarkCustName" style="color: #0f172a;">Rajesh Patel</strong> (<span id="quickRemarkCustVeh">GJ01AB1234</span>)
+        </div>
+        <div style="font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px;" data-i18n="quickPresetsTitle">⚡ Quick Note Presets:</div>
+        <div class="quick-remark-presets">
+          <span class="preset-chip" data-preset="Called - Will pay tomorrow">📞 Called - Will pay tomorrow</span>
+          <span class="preset-chip" data-preset="Called - Not answering">📵 Called - Not answering</span>
+          <span class="preset-chip" data-preset="Call back at 11 AM">⏰ Call back at 11 AM</span>
+          <span class="preset-chip" data-preset="WhatsApp quote sent">💬 WhatsApp quote sent</span>
+          <span class="preset-chip" data-preset="Customer agreed to renew">✅ Customer agreed to renew</span>
+          <span class="preset-chip" data-preset="Vehicle sold to other party">🚗 Vehicle sold to other party</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="lblRemarkNote">Note / નોંધ:</label>
+          <input type="text" id="inputQuickRemarkText" class="form-input" placeholder="Type your follow-up note here...">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary modal-cancel-btn" data-i18n="cancel">Cancel</button>
+        <button type="button" class="btn-primary" id="btnSaveQuickRemark" data-i18n="saveRemarkBtn">Save Note</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Ready WhatsApp Message Templates -->
+  <div class="modal-overlay" id="whatsappTemplateModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="#25d366"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm5.78 14.07c-.24.68-1.39 1.3-1.92 1.38-.5.08-1.14.12-3.66-.92-3.23-1.34-5.3-4.63-5.46-4.85-.16-.22-1.3-1.74-1.3-3.32 0-1.58.82-2.36 1.12-2.68.29-.32.65-.4 0.86-.4.22 0 .43 0 .62.01.2.01.47-.08.73.56.27.68.92 2.36.99 2.53.08.17.13.37.02.59-.11.22-.16.35-.32.55-.16.19-.34.42-.48.57-.16.16-.33.34-.14.67.19.32.84 1.39 1.8 2.25 1.24 1.1 2.29 1.45 2.62 1.61.32.16.51.14.7-.08.19-.22.81-.95 1.03-1.27.22-.32.43-.27.73-.16.29.11 1.87.88 2.19 1.04.32.16.54.24.62.38.08.14.08.82-.16 1.5z"/></svg>
+          <h3 class="modal-title" data-i18n="waModalTitle">Send WhatsApp Reminder</h3>
+        </div>
+        <button class="modal-close-btn" type="button">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="wa-modal-header-info">
+          <div class="wa-info-pill">👤 <span id="waModalCustName">Rajesh Patel</span></div>
+          <div class="wa-info-pill">📱 <span id="waModalCustPhone">9825012345</span></div>
+          <div class="wa-info-pill">🚗 <span id="waModalCustVeh">GJ01AB1234</span></div>
+          <div class="wa-info-pill">📑 <span id="waModalCustDoc">Insurance</span></div>
+          <div class="wa-info-pill">⏳ <span id="waModalCustExpiry">15 Sep 2026</span></div>
+        </div>
+
+        <div style="font-size: 12.5px; font-weight: 700; color: #334155; margin-bottom: 8px;" data-i18n="waSelectTemplateTitle">
+          Select Message Template / મેસેજ ટેમ્પલેટ પસંદ કરો:
+        </div>
+        <div class="wa-templates-selector">
+          <button type="button" class="wa-tpl-btn active" data-tpl="reminder15">
+            <div class="wa-tpl-title">📅 <span data-i18n="tpl15Days">15 Days Notice</span></div>
+            <div class="wa-tpl-desc" data-i18n="tpl15DaysDesc">Expiring soon reminder with contact details</div>
+          </button>
+          <button type="button" class="wa-tpl-btn" data-tpl="expiryToday">
+            <div class="wa-tpl-title">🚨 <span data-i18n="tplToday">Today / Urgent Expiry</span></div>
+            <div class="wa-tpl-desc" data-i18n="tplTodayDesc">Urgent reminder: document expires today/now</div>
+          </button>
+          <button type="button" class="wa-tpl-btn" data-tpl="trafficChallan">
+            <div class="wa-tpl-title">⚠️ <span data-i18n="tplPenalty">Traffic Fine Warning</span></div>
+            <div class="wa-tpl-desc" data-i18n="tplPenaltyDesc">Notice on ₹2,000-₹10,000 RTO police penalty</div>
+          </button>
+          <button type="button" class="wa-tpl-btn" data-tpl="renewSuccess">
+            <div class="wa-tpl-title">✅ <span data-i18n="tplSuccess">Renewal Confirmation</span></div>
+            <div class="wa-tpl-desc" data-i18n="tplSuccessDesc">Thank you message with renewal confirmation</div>
+          </button>
+        </div>
+
+        <div class="wa-textarea-wrap">
+          <label class="form-label" style="display:flex; justify-content:space-between;">
+            <span data-i18n="waMessagePreviewLabel">Message Preview (Editable / તમે બદલી શકો છો):</span>
+            <span id="waCharCount" style="font-weight: normal; color: #64748b;">0 chars</span>
+          </label>
+          <textarea id="waMessageTextarea" class="wa-textarea" rows="5"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:space-between;">
+        <button type="button" class="btn-secondary" id="btnCopyWaMessage">
+          📋 <span data-i18n="btnCopyMsg">Copy Message</span>
+        </button>
+        <div style="display:flex; gap:10px;">
+          <button type="button" class="btn-secondary modal-cancel-btn" data-i18n="cancel">Cancel</button>
+          <button type="button" class="wa-btn-send" id="btnSendWaModal">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm5.78 14.07c-.24.68-1.39 1.3-1.92 1.38-.5.08-1.14.12-3.66-.92-3.23-1.34-5.3-4.63-5.46-4.85-.16-.22-1.3-1.74-1.3-3.32 0-1.58.82-2.36 1.12-2.68.29-.32.65-.4 0.86-.4.22 0 .43 0 .62.01.2.01.47-.08.73.56.27.68.92 2.36.99 2.53.08.17.13.37.02.59-.11.22-.16.35-.32.55-.16.19-.34.42-.48.57-.16.16-.33.34-.14.67.19.32.84 1.39 1.8 2.25 1.24 1.1 2.29 1.45 2.62 1.61.32.16.51.14.7-.08.19-.22.81-.95 1.03-1.27.22-.32.43-.27.73-.16.29.11 1.87.88 2.19 1.04.32.16.54.24.62.38.08.14.08.82-.16 1.5z"/></svg>
+            <span data-i18n="btnSendWhatsApp">Send on WhatsApp</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Print Renewal Receipt Voucher -->
+  <div class="modal-overlay" id="receiptModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <span>🖨️</span> <span data-i18n="receiptModalTitle">Print Renewal Receipt Voucher</span>
+        </h3>
+        <button class="modal-close-btn" type="button">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <!-- Printable Container -->
+        <div id="printableReceipt" class="receipt-sheet">
+          <div class="receipt-header-row">
+            <div class="receipt-brand-left">
+              <img src="logo.jpg" alt="Logo" class="receipt-logo-img">
+              <div>
+                <div class="receipt-brand-title">Momai <span>Enterprise</span></div>
+                <div class="receipt-brand-sub" data-i18n="brandTagline">Drive Secure. We Remind.</div>
+                <div style="font-size: 11px; color: #64748b; margin-top: 2px;">RTO Services • Vehicle Insurance • Fitness & PUC</div>
+              </div>
+            </div>
+            <div class="receipt-header-meta">
+              <div class="receipt-voucher-badge" id="recVoucherNo">ME-2026-1048</div>
+              <div>Date: <strong id="recDate">10 Sep 2026</strong></div>
+              <div>Helpline: <strong id="recHelpline">+91 99250 23570</strong></div>
+            </div>
+          </div>
+
+          <div class="receipt-title-banner" data-i18n="receiptBannerText">
+            OFFICIAL VEHICLE DOCUMENT RENEWAL RECEIPT
+          </div>
+
+          <div class="receipt-details-grid">
+            <div class="receipt-box">
+              <div class="receipt-box-title" data-i18n="receiptCustomerInfo">Customer Details</div>
+              <div class="receipt-field-row">
+                <span class="receipt-field-label" data-i18n="colCustomerName">Name:</span>
+                <span class="receipt-field-val" id="recCustName">Rajesh Patel</span>
+              </div>
+              <div class="receipt-field-row">
+                <span class="receipt-field-label" data-i18n="mobileNumberLabel">Mobile No:</span>
+                <span class="receipt-field-val" id="recCustPhone">+91 98250 12345</span>
+              </div>
+              <div class="receipt-field-row">
+                <span class="receipt-field-label">Location:</span>
+                <span class="receipt-field-val">Gujarat, India</span>
+              </div>
+            </div>
+
+            <div class="receipt-box">
+              <div class="receipt-box-title" data-i18n="receiptVehicleInfo">Vehicle Details</div>
+              <div class="receipt-field-row">
+                <span class="receipt-field-label" data-i18n="colVehicleNo">Vehicle No:</span>
+                <span class="receipt-field-val" id="recCustVehicle">GJ01AB1234</span>
+              </div>
+              <div class="receipt-field-row">
+                <span class="receipt-field-label" data-i18n="vehicleTypeLabel">Category:</span>
+                <span class="receipt-field-val" id="recVehicleType">Four Wheeler (Car)</span>
+              </div>
+              <div class="receipt-field-row">
+                <span class="receipt-field-label">Assigned Staff:</span>
+                <span class="receipt-field-val" id="recStaffName">Sabir Ajmeri</span>
+              </div>
+            </div>
+          </div>
+
+          <table class="receipt-table">
+            <thead>
+              <tr>
+                <th data-i18n="colDocument">Service / Document</th>
+                <th>Policy / Ref No.</th>
+                <th>Valid Upto</th>
+                <th style="text-align: right;">Amount (₹)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong id="recDocName">Vehicle Comprehensive Insurance</strong></td>
+                <td id="recPolicyNo">POL-GJ-2026-9821</td>
+                <td id="recExpiryDate">15 Sep 2027</td>
+                <td style="text-align: right; font-weight: 700;" id="recPremiumAmount">₹ 4,850.00</td>
+              </tr>
+              <tr>
+                <td colspan="3" style="text-align: right; color: #64748b;">RTO & Processing Fee</td>
+                <td style="text-align: right; font-weight: 600;">₹ 150.00</td>
+              </tr>
+              <tr class="total-row">
+                <td colspan="3" style="text-align: right;" data-i18n="recTotalPaid">TOTAL AMOUNT RECEIVED:</td>
+                <td style="text-align: right; color: #166534;" id="recTotalAmount">₹ 5,000.00</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="receipt-footer-row">
+            <div class="receipt-stamp-wrap">
+              <div class="receipt-verified-stamp">
+                <span class="stamp-text-top">MOMAI ENTERPRISE</span>
+                <span class="stamp-text-mid">✓ PAID</span>
+                <span class="stamp-text-sub">VERIFIED VOUCHER</span>
+              </div>
+            </div>
+            <div style="font-size: 11px; color: #64748b; max-width: 260px;">
+              * Computer generated receipt voucher for Momai Enterprise CRM. Keep safe for future reference.
+            </div>
+            <div class="receipt-sign-box">
+              <div class="receipt-sign-line"></div>
+              <div class="receipt-sign-label" data-i18n="recAuthSign">Authorized Signatory</div>
+              <div style="font-size: 11px; font-weight: 700; color: #0f172a;">Momai Enterprise</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:space-between;">
+        <button type="button" class="btn-secondary modal-cancel-btn" data-i18n="cancel">Close</button>
+        <button type="button" class="btn-print-action" id="btnPrintVoucherBtn">
+          <span>🖨️</span> <span data-i18n="btnPrintReceipt">Print Receipt / પ્રિન્ટ કરો</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Dynamic Document Types Management (Admin) -->
+  <div class="modal-overlay" id="modalManageDocTypes">
+    <div class="modal-box" style="max-width: 580px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <span>⚙️</span> <span data-i18n="manageDocTypesModalTitle">Document Types Management (ડોક્યુમેન્ટ પ્રકારો)</span>
+        </h3>
+        <button class="modal-close-btn" type="button">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Add New Document Type Form -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 18px;">
+          <div style="font-weight: 700; font-size: 13.5px; margin-bottom: 10px; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+            <span>➕</span> <span>Add New Document Type / નવો દસ્તાવેજ ઉમેરો</span>
+          </div>
+          <form id="formAddDocType" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <input type="text" id="inputNewDocName" class="form-input" placeholder="e.g. Road Tax, National Permit, HP Cancel..." style="flex: 1; min-width: 220px;" required>
+            <button type="submit" class="btn-primary" style="padding: 9px 18px; white-space: nowrap; background: #4f46e5; border-color: #4338ca;">
+              <span>+ Add Type</span>
+            </button>
+          </form>
+          <div style="font-size: 11.5px; color: #64748b; margin-top: 6px;">
+            New types will automatically appear in customer forms, reports, dashboard filters, and Excel templates.
+          </div>
+        </div>
+
+        <!-- Active Document Types List -->
+        <div style="font-weight: 700; font-size: 13px; color: #334155; margin-bottom: 10px;">
+          Active Document Types / હાલના દસ્તાવેજો:
+        </div>
+        <div id="docTypesManageList" class="doc-types-manage-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; padding-right: 4px;">
+          <!-- Dynamically populated via app.js -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary modal-cancel-btn" data-i18n="close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Forgot Password & Email OTP Verification -->
+  <div class="modal-overlay" id="modalForgotPassword">
+    <div class="modal-box" style="max-width: 440px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">🔐</span>
+          <h3 class="modal-title" data-i18n="forgotPasswordModalTitle">Reset Password / પાસવર્ડ રીસેટ કરો</h3>
+        </div>
+        <button class="modal-close-btn" id="btnCloseForgotModal" type="button">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 22px;">
+        <!-- Step 1: Identifier Input -->
+        <div id="forgotStep1">
+          <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin-bottom: 16px;" data-i18n="forgotStep1Desc">
+            Enter your Admin User ID or registered Email ID. A 6-digit verification code will be sent to your email to securely reset your password.
+          </p>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label class="form-label" for="forgotIdentifier" data-i18n="forgotIdentifierLabel" style="font-weight: 700;">User ID or Email / વપરાશકર્તા ID અથવા ઇમેઇલ</label>
+            <div class="login-input-wrap" style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px; display: flex; align-items: center; padding: 0 12px;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#64748b" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <input type="text" id="forgotIdentifier" class="login-input" placeholder="e.g. admin or sabir@momai.com" style="border: none; background: transparent; padding: 12px 10px; width: 100%; font-size: 14px;" required>
+            </div>
+          </div>
+          <button type="button" class="btn-primary" id="btnSendOtp" style="width: 100%; padding: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; background: #4f46e5; border-color: #4338ca;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <span data-i18n="btnSendOtpText">Send Verification Code to Email</span>
+          </button>
+        </div>
+
+        <!-- Step 2: OTP & New Password -->
+        <div id="forgotStep2" style="display: none;">
+          <div id="forgotOtpSentNotice" style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; color: #1e40af; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+            <span>✉️</span> <span>Code sent to: <strong id="forgotSentEmail" style="color: #1d4ed8;"></strong></span>
+          </div>
+          <div id="forgotDemoOtpAlert" style="display: none; background: #fefce8; border: 1px solid #fef08a; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; color: #854d0e; margin-bottom: 14px;">
+            ⚡ <strong>Instant Test Code:</strong> <span id="forgotDemoOtpVal" style="font-size: 16px; font-weight: 800; letter-spacing: 2px; color: #a16207;"></span>
+          </div>
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label" for="forgotOtpInput" data-i18n="forgotOtpLabel" style="font-weight: 700;">Enter 6-Digit Code / 6-અંકનો કોડ</label>
+            <input type="text" id="forgotOtpInput" class="form-input text-center" maxlength="6" placeholder="• • • • • •" style="letter-spacing: 6px; font-size: 22px; font-weight: 800; text-align: center; color: #4f46e5; background: #f8fafc;" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label class="form-label" for="forgotNewPass" data-i18n="forgotNewPassLabel" style="font-weight: 700;">New Password / નવો પાસવર્ડ</label>
+            <div class="login-input-wrap" style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px; display: flex; align-items: center; padding: 0 12px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#64748b" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <input type="password" id="forgotNewPass" class="login-input" placeholder="Enter new password (min 4 chars)" style="border: none; background: transparent; padding: 10px; width: 100%; font-size: 13.5px;" required>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 18px;">
+            <label class="form-label" for="forgotConfirmPass" data-i18n="forgotConfirmPassLabel" style="font-weight: 700;">Confirm Password / પાસવર્ડ પુષ્ટિ કરો</label>
+            <div class="login-input-wrap" style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px; display: flex; align-items: center; padding: 0 12px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#64748b" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <input type="password" id="forgotConfirmPass" class="login-input" placeholder="Re-enter new password" style="border: none; background: transparent; padding: 10px; width: 100%; font-size: 13.5px;" required>
+            </div>
+          </div>
+          <button type="button" class="btn-primary" id="btnSubmitResetPassword" style="width: 100%; padding: 12px; font-weight: 700; background: #16a34a; border-color: #15803d; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            <span data-i18n="btnResetPassText">Change Password & Sign In</span>
+          </button>
+          <div style="text-align: center; margin-top: 14px;">
+            <a href="javascript:void(0)" id="btnResendOtp" style="font-size: 12px; color: #4f46e5; text-decoration: underline; font-weight: 600;">Resend Code / ફરીથી મોકલો</a>
+          </div>
+        </div>
+
+        <!-- Step 3: Success Screen -->
+        <div id="forgotStep3" style="display: none; text-align: center; padding: 14px 10px;">
+          <div style="font-size: 48px; margin-bottom: 8px;">🎉</div>
+          <h4 style="font-weight: 800; font-size: 18px; color: #0f172a; margin-bottom: 6px;" data-i18n="forgotSuccessTitle">Password Reset Successfully!</h4>
+          <p style="font-size: 13.5px; color: #64748b; margin-bottom: 20px; line-height: 1.5;" data-i18n="forgotSuccessDesc">Your new password is now saved. Please log in with your updated password.</p>
+          <button type="button" class="btn-primary" id="btnForgotBackToLogin" style="width: 100%; padding: 12px; font-weight: 700;">Back to Sign In / લૉગિન પેજ પર જાઓ</button>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 12px 22px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+        <button type="button" class="btn-secondary modal-cancel-btn" id="btnCancelForgotModal" data-i18n="cancel">Cancel / રદ કરો</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Logic Script -->
+  <script src="app.js?v=3.0"></script>
+</body>
+</html>

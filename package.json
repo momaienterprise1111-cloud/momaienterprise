@@ -1,0 +1,20 @@
+{
+  "name": "autocare-crm",
+  "version": "1.0.0",
+  "description": "AutoCare CRM - Modern Editable Bilingual Vehicle Document Reminder CRM",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "crm",
+    "autocare",
+    "gujarati",
+    "vehicle-reminder"
+  ],
+  "author": "Sabir Ajmeri",
+  "license": "MIT",
+  "dependencies": {
+    "nodemailer": "^10.0.8"
+  }
+}
