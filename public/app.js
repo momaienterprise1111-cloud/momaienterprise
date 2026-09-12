@@ -487,9 +487,9 @@ class AutoCareCRM {
       let serverPayload = null;
       let cloudVer = 0;
 
-      // 1. Try Cloudflare Worker / API endpoint first
+      // 1. Primary Cloud Store: High-Speed Firebase RTDB
       try {
-        const res = await fetch('/api/data?t=' + Date.now(), { cache: 'no-store' });
+        const res = await fetch('https://momaienterprise-crm-live-default-rtdb.firebaseio.com/crm_database.json?t=' + Date.now(), { cache: 'no-store' });
         if (res.ok) {
           const raw = await res.json();
           if (raw && (raw.data || raw.callingList)) {
@@ -499,10 +499,10 @@ class AutoCareCRM {
         }
       } catch (e) {}
 
-      // 2. Real-time Multi-Device Cloud Sync via High-Speed Firebase RTDB
+      // 2. Fallback to Cloudflare Worker / API endpoint
       if (!serverPayload || !serverPayload.callingList || serverPayload.callingList.length === 0) {
         try {
-          const res = await fetch('https://momaienterprise-crm-live-default-rtdb.firebaseio.com/crm_database.json?t=' + Date.now(), { cache: 'no-store' });
+          const res = await fetch('/api/data?t=' + Date.now(), { cache: 'no-store' });
           if (res.ok) {
             const raw = await res.json();
             if (raw && (raw.data || raw.callingList)) {
@@ -2471,6 +2471,10 @@ class AutoCareCRM {
 
   triggerWhatsAppDispatch(standardPhone, text, mode = 'web') {
     const encoded = encodeURIComponent(text);
+    // Auto-copy message to clipboard so user can also paste in any tab with Ctrl+V if needed
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(() => {});
+    }
     // Directly target WhatsApp Web window to prevent Windows desktop app from opening and reuse existing Web tab
     const waWebUrl = `https://web.whatsapp.com/send?phone=${standardPhone}&text=${encoded}`;
     window.open(waWebUrl, 'MomaiWhatsAppWindow');
