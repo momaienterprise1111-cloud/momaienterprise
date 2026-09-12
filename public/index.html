@@ -173,6 +173,13 @@
           <span data-i18n="navReports">Reports</span>
         </a>
 
+        <!-- Staff & Login Accounts -->
+        <a href="javascript:void(0)" class="nav-item" id="btnSidebarStaffAccounts" title="View & Manage all Staff Login Accounts / સ્ટાફ અને લૉગિન એકાઉન્ટ">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span data-i18n="navStaffAccounts">Staff & Accounts</span>
+          <span class="nav-badge-count" id="sidebarStaffCountBadge" style="margin-left: auto; background: #e0e7ff; color: #4338ca; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 20px;">1</span>
+        </a>
+
         <!-- Settings -->
         <a href="#settings" class="nav-item" id="btnNavSettings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -1586,15 +1593,18 @@
           <textarea id="waMessageTextarea" class="wa-textarea" rows="5"></textarea>
         </div>
       </div>
-      <div class="modal-footer" style="display:flex; justify-content:space-between;">
+      <div class="modal-footer" style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
         <button type="button" class="btn-secondary" id="btnCopyWaMessage">
           📋 <span data-i18n="btnCopyMsg">Copy Message</span>
         </button>
-        <div style="display:flex; gap:10px;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button type="button" class="btn-secondary modal-cancel-btn" data-i18n="cancel">Cancel</button>
-          <button type="button" class="wa-btn-send" id="btnSendWaModal">
+          <button type="button" class="btn-secondary" id="btnSendWaWebModal" title="Open in WhatsApp Web browser tab" style="font-weight:600; font-size:12.5px; border-color:#cbd5e1;">
+            <span>🌐 WhatsApp Web</span>
+          </button>
+          <button type="button" class="wa-btn-send" id="btnSendWaModal" title="Open directly in logged-in WhatsApp (Desktop/App) with zero new browser tabs">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm5.78 14.07c-.24.68-1.39 1.3-1.92 1.38-.5.08-1.14.12-3.66-.92-3.23-1.34-5.3-4.63-5.46-4.85-.16-.22-1.3-1.74-1.3-3.32 0-1.58.82-2.36 1.12-2.68.29-.32.65-.4 0.86-.4.22 0 .43 0 .62.01.2.01.47-.08.73.56.27.68.92 2.36.99 2.53.08.17.13.37.02.59-.11.22-.16.35-.32.55-.16.19-.34.42-.48.57-.16.16-.33.34-.14.67.19.32.84 1.39 1.8 2.25 1.24 1.1 2.29 1.45 2.62 1.61.32.16.51.14.7-.08.19-.22.81-.95 1.03-1.27.22-.32.43-.27.73-.16.29.11 1.87.88 2.19 1.04.32.16.54.24.62.38.08.14.08.82-.16 1.5z"/></svg>
-            <span data-i18n="btnSendWhatsApp">Send on WhatsApp</span>
+            <span data-i18n="btnSendWhatsApp">📲 Open in Logged-in WhatsApp</span>
           </button>
         </div>
       </div>
@@ -1832,6 +1842,6 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Logic Script -->
-  <script src="app.js?v=4.0"></script>
+  <script src="app.js?v=4.1"></script>
 </body>
 </html>

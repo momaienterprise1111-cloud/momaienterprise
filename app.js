@@ -529,13 +529,15 @@ class AutoCareCRM {
 
       const localListCount = (this.data && this.data.callingList) ? this.data.callingList.length : 0;
 
-      // Case A: Cloud has data and local is newer or empty -> Pull from Cloud
+      // Case A: Cloud has data and local is newer or empty or different -> Pull from Cloud
       if (serverPayload && serverPayload.callingList && Array.isArray(serverPayload.callingList)) {
         const cloudCount = serverPayload.callingList.length;
         const isNewer = cloudVer && (!this.localDataVersion || cloudVer > this.localDataVersion);
         const isLocalEmpty = localListCount === 0 && cloudCount > 0;
+        const isCallingDiff = JSON.stringify(serverPayload.callingList) !== JSON.stringify(this.data.callingList || []);
+        const isEmpDiff = JSON.stringify(serverPayload.employees || []) !== JSON.stringify(this.data.employees || []);
 
-        if (isNewer || isLocalEmpty || options.force) {
+        if (isNewer || isLocalEmpty || isCallingDiff || isEmpDiff || options.force) {
           if (cloudVer) this.localDataVersion = cloudVer;
 
           const activeEl = document.activeElement;
@@ -545,6 +547,14 @@ class AutoCareCRM {
           localStorage.setItem('momai_crm_data_v2', JSON.stringify(serverPayload));
           if (cloudVer) localStorage.setItem('momai_crm_version', String(cloudVer));
 
+          // Sync Admin password locally if updated in Cloud
+          if (serverPayload.employees && Array.isArray(serverPayload.employees)) {
+            const adminEmp = serverPayload.employees.find(e => e.role === 'Admin' || e.username === 'admin');
+            if (adminEmp && adminEmp.password) {
+              localStorage.setItem('momai_crm_admin_pass', adminEmp.password);
+            }
+          }
+
           if (!isUserTyping || options.force) {
             this.render();
           } else {
@@ -553,7 +563,6 @@ class AutoCareCRM {
             this.renderDocumentsTable();
             this.renderNext7DaysList();
             this.renderExpiredDocsList();
-            this.updateDocStatusBadgeCounts();
           }
 
           if (options.showToast && (cloudCount !== localListCount || options.forceToast)) {
@@ -821,6 +830,8 @@ class AutoCareCRM {
     this.calcHintText = document.getElementById('calcHintText');
 
     // Login, Logout & Master Staff Filter Elements
+    this.btnSidebarStaffAccounts = document.getElementById('btnSidebarStaffAccounts');
+    this.sidebarStaffCountBadge = document.getElementById('sidebarStaffCountBadge');
     this.loginOverlay = document.getElementById('loginOverlay');
     this.loginForm = document.getElementById('loginForm');
     this.loginUsername = document.getElementById('loginUsername');
@@ -1055,6 +1066,13 @@ class AutoCareCRM {
     });
 
     // Employee Profile & Staff Management
+    if (this.btnSidebarStaffAccounts) {
+      this.btnSidebarStaffAccounts.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.openEmployeeModal();
+      });
+    }
+
     if (this.btnOpenEmployeeModal) {
       this.btnOpenEmployeeModal.addEventListener('click', () => {
         this.openEmployeeModal();
@@ -1182,7 +1200,14 @@ class AutoCareCRM {
     const btnSendWaModal = document.getElementById('btnSendWaModal');
     if (btnSendWaModal) {
       btnSendWaModal.addEventListener('click', () => {
-        this.sendWhatsAppFromModal();
+        this.sendWhatsAppFromModal('app');
+      });
+    }
+
+    const btnSendWaWebModal = document.getElementById('btnSendWaWebModal');
+    if (btnSendWaWebModal) {
+      btnSendWaWebModal.addEventListener('click', () => {
+        this.sendWhatsAppFromModal('web');
       });
     }
 
@@ -2417,7 +2442,26 @@ class AutoCareCRM {
     this.logActivity('call', `Opened call details for ${customer.name} (${customer.vehicleType || '4W'})`);
   }
 
-  openWhatsAppForCustomer(customer) {
+  triggerWhatsAppDispatch(standardPhone, text, mode = 'app') {
+    const encoded = encodeURIComponent(text);
+    if (mode === 'web') {
+      const waWebUrl = `https://web.whatsapp.com/send?phone=${standardPhone}&text=${encoded}`;
+      window.open(waWebUrl, 'MomaiWhatsAppWindow');
+    } else {
+      // 1. Direct App Protocol: opens directly in the active logged-in WhatsApp (Desktop/App) with zero new browser tabs!
+      const appUrl = `whatsapp://send?phone=${standardPhone}&text=${encoded}`;
+      const link = document.createElement('a');
+      link.href = appUrl;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        if (link.parentNode) link.parentNode.removeChild(link);
+      }, 400);
+    }
+  }
+
+  openWhatsAppForCustomer(customer, mode = 'app') {
     const phone = customer.phone || '9825012345';
     const cleanPhone = phone.replace(/[^0-9]/g, '');
     const standardPhone = (cleanPhone.startsWith('91') && cleanPhone.length === 12) ? cleanPhone : ('91' + cleanPhone.slice(-10));
@@ -2434,12 +2478,10 @@ class AutoCareCRM {
       message = `Dear ${customer.name},\nThis is a reminder that your ${vTypeEn} vehicle ${customer.vehicle} ${doc} is expiring on ${expiry} (${days}).\nPlease renew it promptly with Momai Enterprise to ensure hassle-free driving.\nContact: ${this.data.admin.phone}\nThank you, Momai Enterprise.`;
     }
 
-    const waWebUrl = `https://web.whatsapp.com/send?phone=${standardPhone}&text=${encodeURIComponent(message)}`;
-    // Re-use named window so already open WhatsApp Web is focused and used directly
-    window.open(waWebUrl, 'MomaiWhatsAppWindow');
+    this.triggerWhatsAppDispatch(standardPhone, message, mode);
 
     this.logActivity('whatsapp', `WhatsApp sent to ${customer.name} (${customer.vehicleType || '4W'})`);
-    this.showToast(`${this.t('whatsappPrompt')} ${customer.name}`, 'success');
+    this.showToast(this.currentLang === 'gu' ? `વોટ્સએપ ઓપન થયું: ${customer.name}` : `Opening WhatsApp for ${customer.name}...`, 'success');
   }
 
   // --- Quick Remark Modal Handlers ---
@@ -2543,23 +2585,21 @@ class AutoCareCRM {
     }
   }
 
-  sendWhatsAppFromModal() {
+  sendWhatsAppFromModal(mode = 'app') {
     const customer = this.activeWaCustomer;
     if (!customer) return;
     const textarea = document.getElementById('waMessageTextarea');
     const text = textarea ? textarea.value : '';
     const phone = (customer.phone || '9825012345').replace(/[^0-9]/g, '');
     const standardPhone = (phone.startsWith('91') && phone.length === 12) ? phone : ('91' + phone.slice(-10));
-    const waWebUrl = `https://web.whatsapp.com/send?phone=${standardPhone}&text=${encodeURIComponent(text)}`;
     
-    // Re-use named window so already open WhatsApp Web tab is targeted directly
-    window.open(waWebUrl, 'MomaiWhatsAppWindow');
+    this.triggerWhatsAppDispatch(standardPhone, text, mode);
     
     customer.contacted = true;
     this.saveData();
     this.render();
     this.logActivity('whatsapp', `WhatsApp template dispatched to ${customer.name} (${customer.vehicle})`);
-    this.showToast(`WhatsApp dispatched to ${customer.name}!`, 'success');
+    this.showToast(this.currentLang === 'gu' ? `વોટ્સએપ મોકલાયું: ${customer.name}!` : `WhatsApp dispatched to ${customer.name}!`, 'success');
     this.closeModals();
   }
 
@@ -3280,9 +3320,12 @@ class AutoCareCRM {
   }
 
   isCurrentUserAdmin() {
-    if (!this.currentSession || !this.currentSession.empId) return false;
-    const emp = (this.data.employees || []).find(e => e.id === this.currentSession.empId);
-    return emp ? emp.role === 'Admin' : false;
+    if (!this.currentSession) return true;
+    if (this.currentSession.role === 'Admin' || this.currentSession.role === 'admin' || (this.currentSession.username && this.currentSession.username.toLowerCase() === 'admin')) {
+      return true;
+    }
+    const emp = (this.data.employees || []).find(e => e.id === this.currentSession.empId || (e.username && e.username.toLowerCase() === (this.currentSession.username || '').toLowerCase()));
+    return emp ? (emp.role === 'Admin' || emp.role === 'admin' || emp.username === 'admin') : false;
   }
 
   getEmployeeName(empId) {
@@ -3295,13 +3338,15 @@ class AutoCareCRM {
     let list = this.data.callingList || [];
     const isAdmin = this.isCurrentUserAdmin();
 
-    if (!isAdmin && this.currentSession) {
-      // Telecaller/staff sees customers assigned to them OR created by them
+    if (isAdmin) {
+      // Admin sees ALL customer records across the entire database when filter is 'all'
+      if (this.masterStaffFilter && this.masterStaffFilter !== 'all') {
+        list = list.filter(c => c.assignedStaff === this.masterStaffFilter || c.createdById === this.masterStaffFilter);
+      }
+    } else if (this.currentSession && this.currentSession.empId) {
+      // Non-admin telecaller/staff sees customers assigned to them or created by them
       const myId = this.currentSession.empId;
       list = list.filter(c => c.assignedStaff === myId || c.createdById === myId);
-    } else if (isAdmin && this.masterStaffFilter && this.masterStaffFilter !== 'all') {
-      // Admin filter by staff
-      list = list.filter(c => c.assignedStaff === this.masterStaffFilter || c.createdById === this.masterStaffFilter);
     }
     return this.sortCallingList(list);
   }
@@ -3327,6 +3372,12 @@ class AutoCareCRM {
   }
 
   renderEmployees() {
+    // Update sidebar badge count
+    const staffBadge = document.getElementById('sidebarStaffCountBadge');
+    if (staffBadge) {
+      staffBadge.textContent = String(this.data.employees ? this.data.employees.length : 0);
+    }
+
     if (!this.employeeCardsContainer) return;
     this.employeeCardsContainer.innerHTML = '';
 
@@ -3340,27 +3391,29 @@ class AutoCareCRM {
     const modalSubtitle = document.getElementById('employeeModalSubtitle');
     const sectionAddEmp = document.getElementById('sectionAddNewEmployee');
 
+    const totalAccountsCount = this.data.employees ? this.data.employees.length : 0;
+
     if (modalTitle) {
       modalTitle.innerHTML = isAdmin 
-        ? (this.currentLang === 'gu' ? '👥 સ્ટાફ મેનેજમેન્ટ (એડમિન કંટ્રોલ)' : '👥 Staff Management (Admin Only)')
+        ? (this.currentLang === 'gu' ? `👥 સ્ટાફ અને લૉગિન એકાઉન્ટ (${totalAccountsCount} સભ્યો)` : `👥 Staff & Login Accounts (${totalAccountsCount} Accounts)`)
         : (this.currentLang === 'gu' ? '👤 મારી પ્રોફાઇલ' : '👤 My Profile');
     }
     if (modalSubtitle) {
       modalSubtitle.innerHTML = isAdmin
-        ? (this.currentLang === 'gu' ? 'તમામ કર્મચારી પ્રોફાઇલ અને પરમિશન:' : 'All Staff & Employee Profiles:')
+        ? (this.currentLang === 'gu' ? `કુલ ${totalAccountsCount} રજિસ્ટર્ડ એકાઉન્ટ્સ (User ID & Password નીચે મુજબ છે):` : `Total ${totalAccountsCount} Registered Accounts (Credentials & Management):`)
         : (this.currentLang === 'gu' ? 'મારા ખાતાની વિગતો:' : 'My Account Details:');
     }
     if (sectionAddEmp) {
       sectionAddEmp.style.display = isAdmin ? 'block' : 'none';
     }
 
-    // Security & Visibility: ONLY Admin sees all profiles! Non-admin employee ONLY sees their own profile!
+    // Security & Visibility: Admin sees all profiles! Non-admin employee ONLY sees their own profile!
     const employeesToShow = isAdmin
       ? (this.data.employees || [])
       : (this.data.employees || []).filter(e => e.id === currentMyId);
 
     if (employeesToShow.length === 0) {
-      this.employeeCardsContainer.innerHTML = `<div style="text-align:center; padding: 20px; color: #94a3b8;">No profile details found</div>`;
+      this.employeeCardsContainer.innerHTML = `<div style="text-align:center; padding: 20px; color: #94a3b8;">No account profiles found</div>`;
       return;
     }
 
@@ -3378,25 +3431,25 @@ class AutoCareCRM {
           <div class="emp-text">
             <span class="emp-name">
               ${this.escapeHtml(emp.name)}
-              <span class="emp-role-badge">${this.escapeHtml(emp.role)}</span>
+              <span class="emp-role-badge" style="font-weight: 800; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 6px; font-size: 11px;">${this.escapeHtml(emp.role)}</span>
             </span>
             <span class="emp-phone">📞 ${this.escapeHtml(emp.phone || 'No phone')} • ✉️ ${this.escapeHtml(emp.email || 'N/A')}</span>
-            <div class="emp-creds" style="margin-top: 6px; font-size: 11.5px; color: #475569; background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0; display: inline-flex; align-items: center; gap: 8px;">
-              <span>🔑 User ID: <strong style="color: #0369a1;">${this.escapeHtml(emp.username || 'N/A')}</strong></span>
+            <div class="emp-creds" style="margin-top: 6px; font-size: 12px; color: #334155; background: #f1f5f9; padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; display: inline-flex; align-items: center; gap: 8px;">
+              <span>🔑 User ID: <strong style="color: #0369a1;">${this.escapeHtml(emp.username || 'admin')}</strong></span>
               <span>•</span>
-              <span>Password: <strong style="color: #0369a1;">${this.escapeHtml(emp.password || '••••')}</strong></span>
+              <span>Password: <strong style="color: #15803d; font-family: monospace; font-size: 13px;">${this.escapeHtml(emp.password || '••••')}</strong></span>
             </div>
           </div>
         </div>
         <div class="emp-action-btns" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-          <button type="button" class="btn-edit-profile" data-edit-emp="${emp.id}" title="${isAdmin ? 'Edit / Rename Profile (નામ અને પ્રોફાઇલ સંપાદિત કરો)' : 'Edit My Profile (મારી પ્રોફાઇલ સંપાદિત કરો)'}" style="display:inline-flex; align-items:center; gap:4px; padding: 5px 10px; font-size: 11.5px; font-weight: 700; background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; border-radius: 6px; cursor: pointer;">
-            <span>✏️ ${isAdmin ? 'Edit / Rename' : 'Edit Profile'}</span>
+          <button type="button" class="btn-edit-profile" data-edit-emp="${emp.id}" title="${isAdmin ? 'Edit Profile & Update Password (નામ / પાસવર્ડ બદલો)' : 'Edit Profile (પાસવર્ડ બદલો)'}" style="display:inline-flex; align-items:center; gap:4px; padding: 6px 12px; font-size: 12px; font-weight: 700; background: #4f46e5; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 6px rgba(79, 70, 229, 0.2);">
+            <span>✏️ ${isAdmin ? 'Edit / Update Password' : 'Change Password'}</span>
           </button>
           ${isSelf 
-            ? `<span class="active-profile-tag">${this.t('activeProfileTag')}</span>` 
+            ? `<span class="active-profile-tag" style="background:#dcfce7; color:#15803d; font-weight:700; padding:4px 8px; border-radius:6px; font-size:11px;">${this.t('activeProfileTag')}</span>` 
             : (isAdmin ? `<button type="button" class="btn-switch-profile" data-switch-id="${emp.id}">${this.t('btnSwitchProfile')}</button>` : '')}
           ${(isAdmin && !isSelf && emp.role !== 'Admin') 
-            ? `<button type="button" class="action-icon-btn btn-delete-row" data-del-emp="${emp.id}" title="Remove Employee" style="width:28px; height:28px;">
+            ? `<button type="button" class="action-icon-btn btn-delete-row" data-del-emp="${emp.id}" title="Remove Account / ખાતું દૂર કરો" style="width:28px; height:28px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px; height:13px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                </button>` 
             : ''}
@@ -3635,13 +3688,15 @@ class AutoCareCRM {
     emp.password = password;
 
     // If Admin or emp1, sync with top-level admin config
-    if (emp.role === 'Admin' || emp.id === 'emp1' || emp.id === this.data.activeEmployeeId) {
+    if (emp.role === 'Admin' || emp.id === 'emp1' || emp.username.toLowerCase() === 'admin' || emp.id === this.data.activeEmployeeId) {
       if (this.data.admin) {
         this.data.admin.name = name;
         this.data.admin.welcomeName = name.split(' ')[0];
-        this.data.admin.initials = name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'SA';
+        this.data.admin.initials = name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'MA';
         this.data.admin.phone = phone;
+        this.data.admin.password = password;
       }
+      localStorage.setItem('momai_crm_admin_pass', password);
     }
 
     // If active session is this employee, update session
