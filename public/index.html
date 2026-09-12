@@ -9,7 +9,7 @@
   <link rel="alternate icon" type="image/jpeg" href="logo.jpg">
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css?v=3.0">
-  <!-- SheetJS for local Excel (.xlsx) import & export -->
+  <!-- SheetJS for local & online Excel (.xlsx) import & export -->
   <script src="xlsx.full.min.js"></script>
   <script>if (typeof XLSX === 'undefined') { document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>'); }</script>
 </head>
@@ -18,7 +18,7 @@
   <div id="loginOverlay">
     <div class="login-card">
       <div class="login-brand-header">
-        <img src="logo.jpg" alt="Momai Enterprise" class="login-logo-img">
+        <img src="logo.jpg" onerror="this.onerror=null; this.src='logo.svg';" alt="Momai Enterprise" class="login-logo-img">
         <h2 class="login-title">Momai <span>Enterprise CRM</span></h2>
         <p class="login-subtitle" data-i18n="loginSubtitle">Please sign in to access your CRM portal</p>
       </div>
@@ -85,7 +85,7 @@
     <aside class="sidebar" id="appSidebar">
       <!-- Brand Logo & Slogan (Click returns to Dashboard) -->
       <div class="brand-section" id="btnBrandLogo" title="Back to Dashboard">
-        <img src="logo.jpg" alt="Momai Enterprise Logo" class="brand-logo-img">
+        <img src="logo.jpg" onerror="this.onerror=null; this.src='logo.svg';" alt="Momai Enterprise Logo" class="brand-logo-img">
         <div class="brand-info">
           <div class="brand-name">Momai <span>Enterprise</span></div>
           <div class="brand-tagline" data-i18n="brandTagline">Drive Secure. We Remind.</div>

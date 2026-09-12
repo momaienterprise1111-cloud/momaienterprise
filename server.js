@@ -9,12 +9,36 @@ try {
 }
 
 const PORT = process.env.PORT || 3000;
-const PUBLIC_DIR = __dirname;
-const DB_FILE = path.join(PUBLIC_DIR, 'database.json');
-const BACKUPS_DIR = path.join(PUBLIC_DIR, 'backups');
+const PUBLIC_DIR = fs.existsSync(path.join(__dirname, 'public')) ? path.join(__dirname, 'public') : __dirname;
+const DB_FILE = path.join(__dirname, 'database.json');
+const BACKUPS_DIR = path.join(__dirname, 'backups');
 
 // In-memory store for 6-digit OTP verification
 const otpStore = new Map();
+
+// Ensure public folder and static assets exist
+const PUBLIC_FOLDER = path.join(__dirname, 'public');
+if (!fs.existsSync(PUBLIC_FOLDER)) {
+  try {
+    fs.mkdirSync(PUBLIC_FOLDER, { recursive: true });
+  } catch (e) {
+    console.error('Error creating public dir:', e);
+  }
+}
+const STATIC_ASSETS = ['index.html', 'style.css', 'app.js', 'xlsx.full.min.js', 'logo.jpg', 'manifest.json'];
+for (const file of STATIC_ASSETS) {
+  const src = path.join(__dirname, file);
+  const dst = path.join(PUBLIC_FOLDER, file);
+  if (fs.existsSync(src)) {
+    try {
+      if (!fs.existsSync(dst) || fs.statSync(src).mtimeMs > fs.statSync(dst).mtimeMs) {
+        fs.copyFileSync(src, dst);
+      }
+    } catch (err) {
+      console.warn(`Could not sync ${file} to public/ folder:`, err.message);
+    }
+  }
+}
 
 // Ensure backups directory exists
 if (!fs.existsSync(BACKUPS_DIR)) {

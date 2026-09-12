@@ -1,0 +1,13 @@
+# Cloudflare Static Assets Ignore
+node_modules/
+.git/
+.wrangler/
+backups/
+database.json
+server.js
+package.json
+package-lock.json
+Start_Momai_CRM.bat
+wrangler.jsonc
+.assetsignore
+.gitignore
