@@ -485,49 +485,65 @@ class AutoCareCRM {
     this.isSyncing = true;
     try {
       let serverPayload = null;
+      let cloudVer = 0;
 
-      // 1. Check local server API if running on localhost
-      if (window.location.protocol.startsWith('http') && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-        try {
-          const res = await fetch('/api/data?t=' + Date.now(), { cache: 'no-store' });
-          if (res.ok) serverPayload = await res.json();
-        } catch (e) {}
-      }
+      // 1. Try Cloudflare Worker / API endpoint first
+      try {
+        const res = await fetch('/api/data?t=' + Date.now(), { cache: 'no-store' });
+        if (res.ok) {
+          const raw = await res.json();
+          if (raw && (raw.data || raw.callingList)) {
+            serverPayload = raw.data || raw;
+            cloudVer = raw.version || serverPayload._version || 0;
+          }
+        }
+      } catch (e) {}
 
-      // 2. Real-time Multi-Laptop Cloud Sync via Free Shared Key-Value endpoint
-      if (!serverPayload || !serverPayload.callingList) {
+      // 2. Real-time Multi-Device Cloud Sync via High-Speed Firebase RTDB
+      if (!serverPayload || !serverPayload.callingList || serverPayload.callingList.length === 0) {
         try {
-          const res = await fetch('https://kvdb.io/7z6pMomaiEnterpriseCrm99250/crm_database?t=' + Date.now(), { cache: 'no-store' });
+          const res = await fetch('https://momaienterprise-crm-live-default-rtdb.firebaseio.com/crm_database.json?t=' + Date.now(), { cache: 'no-store' });
           if (res.ok) {
             const raw = await res.json();
-            if (raw && raw.data && raw.data.callingList) {
-              serverPayload = raw.data;
-              serverPayload._version = raw.version || 0;
-            } else if (raw && raw.callingList) {
-              serverPayload = raw;
+            if (raw && (raw.data || raw.callingList)) {
+              serverPayload = raw.data || raw;
+              cloudVer = raw.version || serverPayload._version || 0;
             }
           }
         } catch (e) {}
       }
 
-      if (serverPayload && serverPayload.callingList && Array.isArray(serverPayload.callingList)) {
-        const cloudVersion = serverPayload._version || serverPayload.version || 0;
-        const prevCount = (this.data && this.data.callingList) ? this.data.callingList.length : 0;
-        const newCount = serverPayload.callingList.length;
+      // 3. Fallback to Pantry Key-Value Cloud
+      if (!serverPayload || !serverPayload.callingList || serverPayload.callingList.length === 0) {
+        try {
+          const res = await fetch('https://getpantry.cloud/apiv1/pantry/0726d15b-9999-4d64-9b2f-momai9925000/basket/crm_data?t=' + Date.now(), { cache: 'no-store' });
+          if (res.ok) {
+            const raw = await res.json();
+            if (raw && (raw.data || raw.callingList)) {
+              serverPayload = raw.data || raw;
+              cloudVer = raw.version || serverPayload._version || 0;
+            }
+          }
+        } catch (e) {}
+      }
 
-        const isNewer = cloudVersion && (!this.localDataVersion || cloudVersion > this.localDataVersion);
-        const isLocalEmpty = !this.data || !this.data.callingList || this.data.callingList.length === 0;
+      const localListCount = (this.data && this.data.callingList) ? this.data.callingList.length : 0;
+
+      // Case A: Cloud has data and local is newer or empty -> Pull from Cloud
+      if (serverPayload && serverPayload.callingList && Array.isArray(serverPayload.callingList)) {
+        const cloudCount = serverPayload.callingList.length;
+        const isNewer = cloudVer && (!this.localDataVersion || cloudVer > this.localDataVersion);
+        const isLocalEmpty = localListCount === 0 && cloudCount > 0;
 
         if (isNewer || isLocalEmpty || options.force) {
-          if (cloudVersion) this.localDataVersion = cloudVersion;
+          if (cloudVer) this.localDataVersion = cloudVer;
 
-          // Check if active user is typing in a form
           const activeEl = document.activeElement;
           const isUserTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
 
           this.data = serverPayload;
           localStorage.setItem('momai_crm_data_v2', JSON.stringify(serverPayload));
-          if (cloudVersion) localStorage.setItem('momai_crm_version', String(cloudVersion));
+          if (cloudVer) localStorage.setItem('momai_crm_version', String(cloudVer));
 
           if (!isUserTyping || options.force) {
             this.render();
@@ -540,15 +556,20 @@ class AutoCareCRM {
             this.updateDocStatusBadgeCounts();
           }
 
-          if (options.showToast && (newCount !== prevCount || options.forceToast)) {
-            const diff = newCount - prevCount;
+          if (options.showToast && (cloudCount !== localListCount || options.forceToast)) {
+            const diff = cloudCount - localListCount;
             const diffText = diff > 0 ? ` (+${diff} new)` : '';
             this.showToast(this.currentLang === 'gu'
-              ? `🔄 લાઇવ સિંક: અન્ય લેપટોપ/ડિવાઇસ પરથી ડેટા અપડેટ થયો!${diffText}`
-              : `🔄 Live Cloud Sync: Data updated from another device!${diffText}`, 'info');
+              ? `🔄 લાઇવ સિંક: અન્ય લેપટોપ પરથી ડેટા અપડેટ થયો!${diffText}`
+              : `🔄 Live Cloud Sync: Data updated from another laptop!${diffText}`, 'info');
           }
         }
+      } 
+      // Case B: Local has customer data (e.g. Laptop 1), but Cloud is empty -> Push local to Cloud!
+      else if (localListCount > 0 && (!serverPayload || !serverPayload.callingList || serverPayload.callingList.length === 0)) {
+        this.saveData({ skipBroadcast: true });
       }
+
       this.updateSyncBadge('online');
     } catch (err) {
       console.warn('Sync cloud warning:', err);
@@ -559,7 +580,7 @@ class AutoCareCRM {
   }
 
   initRealtimeSync() {
-    // 1. BroadcastChannel for same-laptop multi-tab instant sync
+    // 1. BroadcastChannel for instant same-browser cross-tab sync
     if (window.BroadcastChannel) {
       try {
         this.broadcastChannel = new BroadcastChannel('momai_crm_sync');
@@ -577,19 +598,32 @@ class AutoCareCRM {
       } catch (e) {}
     }
 
-    // 2. Real-time Multi-Device Cloud Poller (every 3.5 seconds)
+    // 2. Real-time Multi-Device Cloud Poller (every 3 seconds)
     if (this.syncHeartbeatInterval) {
       clearInterval(this.syncHeartbeatInterval);
     }
     this.syncHeartbeatInterval = setInterval(() => {
       this.syncCloudData();
-    }, 3500);
+    }, 3000);
 
-    // 3. True Network Event Listeners
-    window.addEventListener('online', () => this.updateSyncBadge('online'));
+    // 3. Instant sync on tab focus or visibility change
+    window.addEventListener('focus', () => {
+      this.syncCloudData({ force: false });
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        this.syncCloudData({ force: false });
+      }
+    });
+
+    // 4. Network Status Event Listeners
+    window.addEventListener('online', () => {
+      this.updateSyncBadge('online');
+      this.syncCloudData({ force: true });
+    });
     window.addEventListener('offline', () => this.updateSyncBadge('offline'));
 
-    // 4. Clicking sync badge manually forces an instant cloud sync
+    // 5. Clicking sync badge manually forces an instant cloud sync
     const syncIndicator = document.getElementById('syncStatusIndicator');
     if (syncIndicator) {
       syncIndicator.addEventListener('click', () => {
@@ -699,17 +733,26 @@ class AutoCareCRM {
       lastModifiedAt: new Date().toISOString()
     };
 
-    // 3. Multi-Laptop Cloud Sync Push
+    // 3. Multi-Laptop Cloud Sync Push (Firebase Realtime Database)
     try {
-      fetch('https://kvdb.io/7z6pMomaiEnterpriseCrm99250/crm_database', {
+      fetch('https://momaienterprise-crm-live-default-rtdb.firebaseio.com/crm_database.json', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(() => {});
+    } catch (e) {}
+
+    // 4. Also push to Pantry Backup
+    try {
+      fetch('https://getpantry.cloud/apiv1/pantry/0726d15b-9999-4d64-9b2f-momai9925000/basket/crm_data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       }).catch(() => {});
     } catch (e) {}
 
-    // 4. Also push to local server API if running on localhost
-    if (window.location.protocol.startsWith('http') && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    // 5. Also push to Cloudflare Worker / local server API
+    if (window.location.protocol.startsWith('http')) {
       try {
         fetch('/api/data', {
           method: 'POST',
@@ -2377,6 +2420,7 @@ class AutoCareCRM {
   openWhatsAppForCustomer(customer) {
     const phone = customer.phone || '9825012345';
     const cleanPhone = phone.replace(/[^0-9]/g, '');
+    const standardPhone = (cleanPhone.startsWith('91') && cleanPhone.length === 12) ? cleanPhone : ('91' + cleanPhone.slice(-10));
     const doc = customer.doc || 'Vehicle Document';
     const expiry = customer.expiry || customer.expiredOn || 'Upcoming';
     const days = customer.daysLeft || customer.days || 'Soon';
@@ -2390,8 +2434,9 @@ class AutoCareCRM {
       message = `Dear ${customer.name},\nThis is a reminder that your ${vTypeEn} vehicle ${customer.vehicle} ${doc} is expiring on ${expiry} (${days}).\nPlease renew it promptly with Momai Enterprise to ensure hassle-free driving.\nContact: ${this.data.admin.phone}\nThank you, Momai Enterprise.`;
     }
 
-    const waUrl = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(message)}`;
-    window.open(waUrl, '_blank');
+    const waWebUrl = `https://web.whatsapp.com/send?phone=${standardPhone}&text=${encodeURIComponent(message)}`;
+    // Re-use named window so already open WhatsApp Web is focused and used directly
+    window.open(waWebUrl, 'MomaiWhatsAppWindow');
 
     this.logActivity('whatsapp', `WhatsApp sent to ${customer.name} (${customer.vehicleType || '4W'})`);
     this.showToast(`${this.t('whatsappPrompt')} ${customer.name}`, 'success');
@@ -2504,8 +2549,12 @@ class AutoCareCRM {
     const textarea = document.getElementById('waMessageTextarea');
     const text = textarea ? textarea.value : '';
     const phone = (customer.phone || '9825012345').replace(/[^0-9]/g, '');
-    const waUrl = `https://wa.me/91${phone}?text=${encodeURIComponent(text)}`;
-    window.open(waUrl, '_blank');
+    const standardPhone = (phone.startsWith('91') && phone.length === 12) ? phone : ('91' + phone.slice(-10));
+    const waWebUrl = `https://web.whatsapp.com/send?phone=${standardPhone}&text=${encodeURIComponent(text)}`;
+    
+    // Re-use named window so already open WhatsApp Web tab is targeted directly
+    window.open(waWebUrl, 'MomaiWhatsAppWindow');
+    
     customer.contacted = true;
     this.saveData();
     this.render();
@@ -3091,9 +3140,15 @@ class AutoCareCRM {
       return;
     }
 
-    const employee = (this.data.employees || []).find(e => 
-      (e.username && e.username.toLowerCase() === username) && e.password === password
-    );
+    const savedAdminPass = localStorage.getItem('momai_crm_admin_pass');
+
+    const employee = (this.data.employees || []).find(e => {
+      const uMatch = e.username && e.username.toLowerCase() === username;
+      if (!uMatch) return false;
+      if (e.password === password) return true;
+      if ((e.role === 'Admin' || username === 'admin') && savedAdminPass && savedAdminPass === password) return true;
+      return false;
+    });
 
     if (employee) {
       if (this.loginErrorMsg) this.loginErrorMsg.style.display = 'none';
@@ -3125,7 +3180,7 @@ class AutoCareCRM {
     this.showToast(this.t('toastLoggedOut'), 'info');
   }
 
-  // --- Forgot Password & Email Reset Methods ---
+  // --- Simplified Direct Password Reset Methods ---
   openForgotPasswordModal() {
     if (!this.modalForgotPassword) {
       this.modalForgotPassword = document.getElementById('modalForgotPassword');
@@ -3133,47 +3188,15 @@ class AutoCareCRM {
     if (!this.modalForgotPassword) return;
 
     this.isForgotPasswordOpen = true;
-    this.forgotActiveIdentifier = (this.loginUsername && this.loginUsername.value.trim()) || 'admin';
-    if (this.forgotStep1) this.forgotStep1.style.display = 'none';
-    if (this.forgotStep2) this.forgotStep2.style.display = 'block';
-    if (this.forgotStep3) this.forgotStep3.style.display = 'none';
-    
     if (this.forgotNewPass) this.forgotNewPass.value = '';
     if (this.forgotConfirmPass) this.forgotConfirmPass.value = '';
 
-    // Hide login screen cleanly so password reset modal opens in full view
-    if (this.loginOverlay) {
-      this.loginOverlay.style.display = 'none';
-      this.loginOverlay.classList.add('hidden');
-    }
-    
-    this.modalForgotPassword.classList.add('active');
-    
-    // Automatically trigger email dispatch to momaienterprise1111@gmail.com and setup OTP
-    this.sendForgotPasswordOtp(false);
-  }
+    const step2 = document.getElementById('forgotStep2');
+    const step3 = document.getElementById('forgotStep3');
+    if (step2) step2.style.display = 'block';
+    if (step3) step3.style.display = 'none';
 
-  openPasswordResetDirect(user = 'admin', token = '', otp = '') {
-    if (!this.modalForgotPassword) {
-      this.modalForgotPassword = document.getElementById('modalForgotPassword');
-    }
-    if (!this.modalForgotPassword) return;
-
-    this.isForgotPasswordOpen = true;
-    this.forgotActiveIdentifier = user || 'admin';
-    if (this.forgotStep1) this.forgotStep1.style.display = 'none';
-    if (this.forgotStep2) this.forgotStep2.style.display = 'block';
-    if (this.forgotStep3) this.forgotStep3.style.display = 'none';
-
-    if (this.forgotSentEmail) {
-      this.forgotSentEmail.textContent = 'momaienterprise1111@gmail.com';
-    }
-    if (this.forgotOtpInput) {
-      this.forgotOtpInput.value = otp || 'Verified';
-    }
-    if (this.forgotNewPass) this.forgotNewPass.value = '';
-    if (this.forgotConfirmPass) this.forgotConfirmPass.value = '';
-
+    // Hide login screen cleanly so password reset modal is front and center
     if (this.loginOverlay) {
       this.loginOverlay.style.display = 'none';
       this.loginOverlay.classList.add('hidden');
@@ -3182,11 +3205,11 @@ class AutoCareCRM {
     this.modalForgotPassword.classList.add('active');
     setTimeout(() => {
       if (this.forgotNewPass) this.forgotNewPass.focus();
-    }, 200);
+    }, 150);
+  }
 
-    this.showToast(this.currentLang === 'gu'
-      ? '🔗 પાસવર્ડ રીસેટ લિંક ચકાસાયેલ છે! કૃપા કરીને નવો પાસવર્ડ દાખલ કરો.'
-      : '🔗 Password reset link verified! Please enter your new password.', 'info');
+  openPasswordResetDirect(user = 'admin') {
+    this.openForgotPasswordModal();
   }
 
   closeForgotPasswordModal() {
@@ -3197,110 +3220,7 @@ class AutoCareCRM {
     this.checkAuth();
   }
 
-  async sendForgotPasswordOtp(isSilent = false) {
-    const idVal = (this.forgotIdentifier && this.forgotIdentifier.value.trim()) || (this.loginUsername && this.loginUsername.value.trim()) || 'admin';
-
-    const employees = this.data.employees || [];
-    const cleanId = idVal.toLowerCase();
-    const emp = employees.find(e => 
-      (e.username && e.username.toLowerCase() === cleanId) || 
-      (e.email && e.email.toLowerCase() === cleanId)
-    ) || employees[0] || { username: 'admin', name: 'Momai Admin', email: 'momaienterprise1111@gmail.com' };
-
-    const targetEmail = 'momaienterprise1111@gmail.com';
-    const otp = String(Math.floor(100000 + Math.random() * 900000));
-    const resetToken = 'rst_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
-    
-    // Live link for momaienterprise.co.in domain
-    const origin = (window.location.origin && !window.location.origin.includes('localhost')) 
-      ? 'https://www.momaienterprise.co.in' 
-      : window.location.origin;
-    const resetLink = `${origin}/#reset-password?user=${encodeURIComponent(emp.username)}&token=${resetToken}&otp=${otp}`;
-
-    // Store pending token in browser storage
-    const pendingData = {
-      username: emp.username,
-      otp: otp,
-      token: resetToken,
-      email: targetEmail,
-      expiresAt: Date.now() + 15 * 60 * 1000
-    };
-    localStorage.setItem('momai_reset_pending', JSON.stringify(pendingData));
-
-    if (this.btnResendOtp) {
-      this.btnResendOtp.style.opacity = '0.6';
-      this.btnResendOtp.style.pointerEvents = 'none';
-      this.btnResendOtp.innerHTML = `<span>⏳ Sending email to ${targetEmail}...</span>`;
-    }
-
-    // 1. Dispatch real live email to momaienterprise1111@gmail.com (100% Free via FormSubmit API)
-    try {
-      fetch(`https://formsubmit.co/ajax/${targetEmail}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          _subject: `🔐 Momai Enterprise CRM - Password Reset Link & Code (${otp})`,
-          _template: 'table',
-          _captcha: 'false',
-          'Portal': 'Momai Enterprise CRM (https://www.momaienterprise.co.in)',
-          'User ID': emp.username,
-          'Staff / Admin Name': emp.name,
-          '6-Digit Verification Code (OTP)': otp,
-          'Direct Password Reset Link': resetLink,
-          'Action': 'Click the Direct Password Reset Link above to update your password immediately in 1 click.',
-          'Validity': '15 minutes'
-        })
-      }).catch(err => {
-        console.warn('FormSubmit email notice:', err);
-      }).finally(() => {
-        if (this.btnResendOtp) {
-          this.btnResendOtp.style.opacity = '1';
-          this.btnResendOtp.style.pointerEvents = 'auto';
-          this.btnResendOtp.innerHTML = `<span>🔄</span> <span>Resend Email to ${targetEmail}</span>`;
-        }
-      });
-    } catch (e) {}
-
-    // 2. Also notify local backend API if server is running
-    if (window.location.protocol.startsWith('http')) {
-      try {
-        fetch('/api/auth/forgot-password', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier: idVal })
-        }).catch(e => {});
-      } catch (e) {}
-    }
-
-    this.forgotActiveIdentifier = emp.username;
-    if (this.forgotSentEmail) {
-      this.forgotSentEmail.textContent = targetEmail;
-    }
-    if (this.forgotOtpInput) {
-      this.forgotOtpInput.value = otp;
-    }
-
-    // Switch Display to Step 2
-    if (this.forgotStep1) this.forgotStep1.style.display = 'none';
-    if (this.forgotStep2) this.forgotStep2.style.display = 'block';
-    if (this.forgotStep3) this.forgotStep3.style.display = 'none';
-
-    if (!isSilent) {
-      this.showToast(this.currentLang === 'gu'
-        ? `✉️ ${targetEmail} પર પાસવર્ડ રીસેટ લિંક મોકલી દીધી છે!`
-        : `✉️ Password reset email sent to ${targetEmail}!`, 'success');
-    }
-
-    setTimeout(() => {
-      if (this.forgotNewPass) this.forgotNewPass.focus();
-    }, 200);
-  }
-
   async submitPasswordReset() {
-    const otp = (this.forgotOtpInput && this.forgotOtpInput.value.trim()) || '';
     const newPass = (this.forgotNewPass && this.forgotNewPass.value.trim()) || '';
     const confirmPass = (this.forgotConfirmPass && this.forgotConfirmPass.value.trim()) || '';
 
@@ -3311,61 +3231,39 @@ class AutoCareCRM {
     }
 
     if (newPass !== confirmPass) {
-      this.showToast(this.currentLang === 'gu' ? 'બંને પાસવર્ડ મેળ ખાતા નથી' : 'Passwords do not match. Please re-check.', 'error');
+      this.showToast(this.currentLang === 'gu' ? 'બંને પાસવર્ડ મેળ ખાતા નથી, ફરીથી ચેક કરો' : 'Passwords do not match. Please re-enter.', 'error');
       if (this.forgotConfirmPass) this.forgotConfirmPass.focus();
-      return;
-    }
-
-    const username = this.forgotActiveIdentifier || 'admin';
-    const pendingRaw = localStorage.getItem('momai_reset_pending');
-    let valid = true;
-
-    if (pendingRaw) {
-      try {
-        const pending = JSON.parse(pendingRaw);
-        if (pending && pending.expiresAt && Date.now() > pending.expiresAt) {
-          valid = false;
-        }
-      } catch (e) {}
-    }
-
-    if (!valid) {
-      this.showToast('Verification code or reset link has expired. Please request a new one.', 'error');
       return;
     }
 
     if (this.btnSubmitResetPassword) {
       this.btnSubmitResetPassword.disabled = true;
-      this.btnSubmitResetPassword.innerHTML = `<span>⏳ Updating password...</span>`;
+      this.btnSubmitResetPassword.innerHTML = `<span>⏳ Saving password...</span>`;
     }
 
-    // 1. Update in memory and local storage
-    const targetEmp = (this.data.employees || []).find(e => e.username.toLowerCase() === username.toLowerCase()) || (this.data.employees && this.data.employees[0]);
-    if (targetEmp) {
-      targetEmp.password = newPass;
-      if (targetEmp.role === 'Admin' || targetEmp.id === 'emp1') {
-        if (this.data.admin) this.data.admin.password = newPass;
-      }
+    // 1. Update Admin password in memory
+    if (this.data.employees && Array.isArray(this.data.employees)) {
+      this.data.employees.forEach(emp => {
+        if (emp.role === 'Admin' || emp.username.toLowerCase() === 'admin' || emp.id === 'emp1') {
+          emp.password = newPass;
+        }
+      });
+    }
+    if (this.data.admin) {
+      this.data.admin.password = newPass;
     }
 
-    localStorage.removeItem('momai_reset_pending');
+    // 2. Save to local storage
+    localStorage.setItem('momai_crm_admin_pass', newPass);
+
+    // 3. Save to Cloud Sync (instantly broadcasts & synchronizes to all connected laptops!)
     this.saveData();
 
-    // 2. Also call backend API if connected
-    if (window.location.protocol.startsWith('http')) {
-      try {
-        fetch('/api/auth/reset-password', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier: username, otp: otp, newPassword: newPass })
-        }).catch(e => {});
-      } catch (e) {}
-    }
-
-    // 3. Switch to Step 3 (Success Screen)
-    if (this.forgotStep1) this.forgotStep1.style.display = 'none';
-    if (this.forgotStep2) this.forgotStep2.style.display = 'none';
-    if (this.forgotStep3) this.forgotStep3.style.display = 'block';
+    // 4. Switch to Step 3 (Success Screen)
+    const step2 = document.getElementById('forgotStep2');
+    const step3 = document.getElementById('forgotStep3');
+    if (step2) step2.style.display = 'none';
+    if (step3) step3.style.display = 'block';
 
     if (this.btnSubmitResetPassword) {
       this.btnSubmitResetPassword.disabled = false;
@@ -3375,8 +3273,10 @@ class AutoCareCRM {
       `;
     }
 
-    this.showToast(this.currentLang === 'gu' ? 'પાસવર્ડ સફળતાપૂર્વક બદલાઈ ગયો છે!' : 'Password reset successfully! You can now log in.', 'success');
-    this.logActivity('contacted', `Password reset completed for ${username}`);
+    this.showToast(this.currentLang === 'gu'
+      ? '✅ પાસવર્ડ સફળતાપૂર્વક અપડેટ થયો! તમામ લેપટોપ પર સેવ થઈ ગયો છે.'
+      : '✅ Password updated successfully across all devices!', 'success');
+    this.logActivity('contacted', `Admin password reset completed`);
   }
 
   isCurrentUserAdmin() {
