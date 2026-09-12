@@ -1,8 +1,7 @@
 // Momai Enterprise CRM - Cloudflare Worker Backend
-// Provides Persistent Real-Time Multi-Device Cloud Synchronization & Static Asset Delivery
+// Connects to RESTful Master Cloud Database & Delivers Static Assets
 
-let inMemoryCrmStore = null;
-let inMemoryVersion = 0;
+const CLOUD_MASTER_URL = 'https://api.restful-api.dev/objects/ff808181a067127101a096ac7835033a';
 
 export default {
   async fetch(request, env) {
@@ -22,38 +21,21 @@ export default {
 
     // Real-Time Cross-Device Data Sync API (/api/data or /api/sync)
     if (url.pathname === '/api/data' || url.pathname === '/api/sync') {
-      const cache = caches.default;
-      const cacheKey = new Request('https://momaienterprise.co.in/api/data_store_cache', { method: 'GET' });
-
-      // 1. POST / PUT: Save customer data, passwords, and records to cloud
+      // 1. POST / PUT: Save customer data, passwords, and records to persistent cloud store
       if (request.method === 'POST' || request.method === 'PUT') {
         try {
           const body = await request.json();
-          const version = body.version || Date.now();
+          const version = (body.data && body.data.version) || body.version || Date.now();
           const payload = {
-            success: true,
-            version: version,
-            data: body.data || body,
-            lastModifiedBy: body.lastModifiedBy || 'Admin',
-            lastModifiedAt: body.lastModifiedAt || new Date().toISOString()
+            name: 'Momai_CRM_Master_DB',
+            data: body.data || body
           };
 
-          // Store in Worker Isolate Memory
-          inMemoryCrmStore = payload;
-          inMemoryVersion = version;
-
-          // Store in Cloudflare Global Edge Cache
-          try {
-            const cacheResponse = new Response(JSON.stringify(payload), {
-              headers: {
-                'Content-Type': 'application/json',
-                'Cache-Control': 'public, max-age=31536000, s-maxage=31536000'
-              }
-            });
-            await cache.put(cacheKey, cacheResponse);
-          } catch (cErr) {
-            console.warn('Edge cache put error:', cErr);
-          }
+          const cloudRes = await fetch(CLOUD_MASTER_URL, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
 
           return new Response(JSON.stringify({
             success: true,
@@ -66,25 +48,17 @@ export default {
         }
       }
 
-      // 2. GET: Read latest data
-      // Check Step A: In-memory store
-      if (inMemoryCrmStore && (inMemoryCrmStore.data || inMemoryCrmStore.callingList)) {
-        return new Response(JSON.stringify(inMemoryCrmStore), { headers: corsHeaders });
-      }
-
-      // Check Step B: Cloudflare Global Edge Cache
+      // 2. GET: Read latest data from persistent cloud store
       try {
-        const cachedRes = await cache.match(cacheKey);
-        if (cachedRes) {
-          const cachedJson = await cachedRes.json();
-          if (cachedJson && (cachedJson.data || cachedJson.callingList)) {
-            inMemoryCrmStore = cachedJson;
-            inMemoryVersion = cachedJson.version || 0;
-            return new Response(JSON.stringify(cachedJson), { headers: corsHeaders });
+        const cloudRes = await fetch(CLOUD_MASTER_URL + '?t=' + Date.now(), { cache: 'no-store' });
+        if (cloudRes.ok) {
+          const raw = await cloudRes.json();
+          if (raw && raw.data) {
+            return new Response(JSON.stringify(raw.data), { headers: corsHeaders });
           }
         }
       } catch (cErr) {
-        console.warn('Edge cache match error:', cErr);
+        console.warn('Cloud store fetch error:', cErr);
       }
 
       return new Response(JSON.stringify({

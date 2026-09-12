@@ -487,17 +487,31 @@ class AutoCareCRM {
       let serverPayload = null;
       let cloudVer = 0;
 
-      // 1. Primary Cloud Store: Cloudflare Edge Sync / API endpoint
+      // 1. Primary Direct Cloud Store: Live RESTful Master Database
       try {
-        const res = await fetch('/api/data?t=' + Date.now(), { cache: 'no-store' });
+        const res = await fetch('https://api.restful-api.dev/objects/ff808181a067127101a096ac7835033a?t=' + Date.now(), { cache: 'no-store' });
         if (res.ok) {
           const raw = await res.json();
-          if (raw && (raw.data || raw.callingList)) {
-            serverPayload = raw.data || raw;
-            cloudVer = raw.version || serverPayload._version || 0;
+          if (raw && raw.data && (raw.data.callingList || raw.data.employees)) {
+            serverPayload = raw.data;
+            cloudVer = raw.data.version || raw.data._version || 0;
           }
         }
       } catch (e) {}
+
+      // 2. Secondary Cloud Store: /api/data
+      if (!serverPayload || (!serverPayload.callingList && !serverPayload.employees)) {
+        try {
+          const res = await fetch('/api/data?t=' + Date.now(), { cache: 'no-store' });
+          if (res.ok) {
+            const raw = await res.json();
+            if (raw && (raw.data || raw.callingList)) {
+              serverPayload = raw.data || raw;
+              cloudVer = raw.version || serverPayload._version || 0;
+            }
+          }
+        } catch (e) {}
+      }
 
       const localListCount = (this.data && this.data.callingList) ? this.data.callingList.length : 0;
 
@@ -518,8 +532,16 @@ class AutoCareCRM {
         if (isNewer || isLocalEmpty || isCallingDiff || isEmpDiff || isAdminPassDiff || options.force) {
           if (cloudVer) this.localDataVersion = cloudVer;
 
-          this.data = serverPayload;
-          localStorage.setItem('momai_crm_data_v2', JSON.stringify(serverPayload));
+          this.data.callingList = serverPayload.callingList;
+          this.data.employees = serverPayload.employees;
+          if (serverPayload.documentTypes && Array.isArray(serverPayload.documentTypes)) {
+            this.data.documentTypes = serverPayload.documentTypes;
+          }
+          if (serverPayload.admin) {
+            this.data.admin = serverPayload.admin;
+          }
+
+          localStorage.setItem('momai_crm_data_v2', JSON.stringify(this.data));
           if (cloudVer) localStorage.setItem('momai_crm_version', String(cloudVer));
 
           // Sync Admin password locally if updated in Cloud
@@ -539,6 +561,12 @@ class AutoCareCRM {
             this.renderDocumentsTable();
             this.renderNext7DaysList();
             this.renderExpiredDocsList();
+          }
+
+          // If employees modal is currently visible on screen, re-render it
+          const empModal = document.getElementById('employeeModal');
+          if (empModal && empModal.classList.contains('active')) {
+            this.renderEmployees();
           }
 
           if (options.showToast && (cloudCount !== localListCount || options.forceToast)) {
@@ -718,7 +746,29 @@ class AutoCareCRM {
       lastModifiedAt: new Date().toISOString()
     };
 
-    // 3. Multi-Laptop Cloud Sync Push to /api/data (Cloudflare Edge & Server Engine)
+    // 3. Direct Multi-Device Cloud Sync Push (Live RESTful Master Database)
+    try {
+      fetch('https://api.restful-api.dev/objects/ff808181a067127101a096ac7835033a', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'Momai_CRM_Master_DB',
+          data: {
+            callingList: this.data.callingList || [],
+            employees: this.data.employees || [],
+            documentTypes: this.data.documentTypes || [],
+            admin: this.data.admin || {},
+            version: version,
+            deletedId: options.deletedId || null,
+            deletedIds: options.deletedIds || null,
+            lastModifiedBy: (activeEmp && activeEmp.name) ? activeEmp.name : 'Admin',
+            lastModifiedAt: new Date().toISOString()
+          }
+        })
+      }).catch(() => {});
+    } catch (e) {}
+
+    // 4. Also push to /api/data endpoint
     if (window.location.protocol.startsWith('http')) {
       try {
         fetch('/api/data', {
