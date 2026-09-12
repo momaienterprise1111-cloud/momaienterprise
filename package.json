@@ -1,15 +1,15 @@
 {
-  "name": "autocare-crm",
+  "name": "momaienterprise",
   "version": "1.0.0",
-  "description": "AutoCare CRM - Modern Editable Bilingual Vehicle Document Reminder CRM",
-  "main": "server.js",
+  "description": "Momai Enterprise CRM - Modern Editable Bilingual Vehicle Document Reminder CRM",
   "scripts": {
     "start": "node server.js",
     "build": "node -e \"const fs=require('fs'),path=require('path');if(!fs.existsSync('public'))fs.mkdirSync('public');['index.html','style.css','app.js','xlsx.full.min.js','logo.jpg','manifest.json'].forEach(f=>{if(fs.existsSync(f))fs.copyFileSync(f,path.join('public',f))});console.log('Public assets ready for Cloudflare deployment')\""
   },
   "keywords": [
     "crm",
-    "autocare",
+    "momai",
+    "enterprise",
     "gujarati",
     "vehicle-reminder"
   ],
