@@ -475,68 +475,63 @@ class AutoCareCRM {
     this.bindEvents();
     this.bindRouting();
     this.render();
-    this.syncServerData();
+    this.syncCloudData();
     this.initRealtimeSync();
     this.checkAuth();
   }
 
-  async syncServerData(options = {}) {
-    if (!window.location.protocol.startsWith('http')) return;
+  async syncCloudData(options = {}) {
     if (this.isSyncing) return;
     this.isSyncing = true;
     try {
-      const res = await fetch('/api/data?t=' + Date.now(), { cache: 'no-store' });
-      if (res.ok) {
-        const serverData = await res.json();
-        if (serverData && serverData.callingList && Array.isArray(serverData.callingList)) {
-          if (serverData._version) {
-            this.localDataVersion = serverData._version;
-          }
+      let serverPayload = null;
 
-          if (!serverData.employees || !Array.isArray(serverData.employees) || serverData.employees.length === 0) {
-            serverData.employees = JSON.parse(JSON.stringify(DEFAULT_DATA.employees));
-            serverData.activeEmployeeId = 'emp1';
-          }
-          if (!serverData.activeEmployeeId) {
-            serverData.activeEmployeeId = serverData.employees[0].id;
-          }
-          // Ensure credentials exist
-          serverData.employees.forEach(emp => {
-            if (!emp.username) {
-              if (emp.role === 'Admin') emp.username = 'admin';
-              else emp.username = emp.name.toLowerCase().split(' ')[0];
-            }
-            if (!emp.password) {
-              emp.password = emp.role === 'Admin' ? 'admin123' : '1234';
-            }
-          });
-          // Ensure audit trail fields exist on calling list
-          serverData.callingList.forEach(c => {
-            if (!c.createdBy) {
-              const emp = (serverData.employees || []).find(e => e.id === c.assignedStaff);
-              c.createdBy = emp ? emp.name : 'Momai Admin';
-              c.createdById = emp ? emp.id : 'emp1';
-              c.createdAt = '12 Sep 2026, 11:30 AM';
-            }
-          });
-          if (!serverData.documentTypes || !Array.isArray(serverData.documentTypes) || serverData.documentTypes.length === 0) {
-            serverData.documentTypes = JSON.parse(JSON.stringify(DEFAULT_DATA.documentTypes));
-          }
+      // 1. Check local server API if running on localhost
+      if (window.location.protocol.startsWith('http') && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        try {
+          const res = await fetch('/api/data?t=' + Date.now(), { cache: 'no-store' });
+          if (res.ok) serverPayload = await res.json();
+        } catch (e) {}
+      }
 
-          const prevCount = (this.data && this.data.callingList) ? this.data.callingList.length : 0;
-          const newCount = serverData.callingList.length;
+      // 2. Real-time Multi-Laptop Cloud Sync via Free Shared Key-Value endpoint
+      if (!serverPayload || !serverPayload.callingList) {
+        try {
+          const res = await fetch('https://kvdb.io/7z6pMomaiEnterpriseCrm99250/crm_database?t=' + Date.now(), { cache: 'no-store' });
+          if (res.ok) {
+            const raw = await res.json();
+            if (raw && raw.data && raw.data.callingList) {
+              serverPayload = raw.data;
+              serverPayload._version = raw.version || 0;
+            } else if (raw && raw.callingList) {
+              serverPayload = raw;
+            }
+          }
+        } catch (e) {}
+      }
 
-          // Check if user is currently typing in an input/modal
+      if (serverPayload && serverPayload.callingList && Array.isArray(serverPayload.callingList)) {
+        const cloudVersion = serverPayload._version || serverPayload.version || 0;
+        const prevCount = (this.data && this.data.callingList) ? this.data.callingList.length : 0;
+        const newCount = serverPayload.callingList.length;
+
+        const isNewer = cloudVersion && (!this.localDataVersion || cloudVersion > this.localDataVersion);
+        const isLocalEmpty = !this.data || !this.data.callingList || this.data.callingList.length === 0;
+
+        if (isNewer || isLocalEmpty || options.force) {
+          if (cloudVersion) this.localDataVersion = cloudVersion;
+
+          // Check if active user is typing in a form
           const activeEl = document.activeElement;
           const isUserTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
 
-          this.data = serverData;
-          localStorage.setItem('momai_crm_data_v2', JSON.stringify(serverData));
+          this.data = serverPayload;
+          localStorage.setItem('momai_crm_data_v2', JSON.stringify(serverPayload));
+          if (cloudVersion) localStorage.setItem('momai_crm_version', String(cloudVersion));
 
           if (!isUserTyping || options.force) {
             this.render();
           } else {
-            // Update tables safely without disrupting active keyboard input
             this.renderCallingList();
             this.renderFullCustomersTable();
             this.renderDocumentsTable();
@@ -545,90 +540,61 @@ class AutoCareCRM {
             this.updateDocStatusBadgeCounts();
           }
 
-          this.checkAuth();
-          this.updateSyncBadge('online');
-
           if (options.showToast && (newCount !== prevCount || options.forceToast)) {
             const diff = newCount - prevCount;
             const diffText = diff > 0 ? ` (+${diff} new)` : '';
-            this.showToast(this.currentLang === 'gu' 
-              ? `🔄 લાઇવ સિંક: ડેટા આપમેળે અપડેટ થયો!${diffText}` 
-              : `🔄 Live Auto-Sync: Data updated from server!${diffText}`, 'info');
+            this.showToast(this.currentLang === 'gu'
+              ? `🔄 લાઇવ સિંક: અન્ય લેપટોપ/ડિવાઇસ પરથી ડેટા અપડેટ થયો!${diffText}`
+              : `🔄 Live Cloud Sync: Data updated from another device!${diffText}`, 'info');
           }
         }
       }
+      this.updateSyncBadge('online');
     } catch (err) {
-      console.warn('Sync server data warning:', err);
-      this.updateSyncBadge('offline');
+      console.warn('Sync cloud warning:', err);
+      this.updateSyncBadge(navigator.onLine ? 'online' : 'offline');
     } finally {
       this.isSyncing = false;
     }
   }
 
   initRealtimeSync() {
-    if (!window.location.protocol.startsWith('http')) return;
-
-    // 1. Setup Server-Sent Events (SSE) for instant push on any change
-    try {
-      if (window.EventSource) {
-        if (this.eventSource) {
-          try { this.eventSource.close(); } catch (e) {}
-        }
-        this.eventSource = new EventSource('/api/events');
-
-        this.eventSource.onopen = () => {
-          this.updateSyncBadge('online');
-        };
-
-        this.eventSource.onmessage = (e) => {
-          try {
-            const parsed = JSON.parse(e.data);
-            if (parsed.type === 'DATA_UPDATED') {
-              // A staff member or admin updated/uploaded data!
-              if (!parsed.version || parsed.version !== this.localDataVersion) {
-                this.updateSyncBadge('syncing');
-                this.syncServerData({ showToast: true });
-              }
+    // 1. BroadcastChannel for same-laptop multi-tab instant sync
+    if (window.BroadcastChannel) {
+      try {
+        this.broadcastChannel = new BroadcastChannel('momai_crm_sync');
+        this.broadcastChannel.onmessage = (e) => {
+          if (e.data && e.data.type === 'DATA_UPDATED') {
+            const saved = localStorage.getItem('momai_crm_data_v2');
+            if (saved) {
+              try {
+                this.data = JSON.parse(saved);
+                this.render();
+              } catch (err) {}
             }
-          } catch (err) {}
+          }
         };
-
-        this.eventSource.onerror = () => {
-          this.updateSyncBadge('offline');
-        };
-      }
-    } catch (err) {
-      console.warn('Real-time SSE init failed:', err);
+      } catch (e) {}
     }
 
-    // 2. Heartbeat Status Poller (fallback every 4 seconds)
+    // 2. Real-time Multi-Device Cloud Poller (every 3.5 seconds)
     if (this.syncHeartbeatInterval) {
       clearInterval(this.syncHeartbeatInterval);
     }
-    this.syncHeartbeatInterval = setInterval(async () => {
-      try {
-        const res = await fetch('/api/data/status?t=' + Date.now(), { cache: 'no-store' });
-        if (res.ok) {
-          const status = await res.json();
-          this.updateSyncBadge('online');
-          if (status.version && status.version !== this.localDataVersion) {
-            this.updateSyncBadge('syncing');
-            this.syncServerData({ showToast: true });
-          }
-        } else {
-          this.updateSyncBadge('offline');
-        }
-      } catch (e) {
-        this.updateSyncBadge('offline');
-      }
-    }, 4000);
+    this.syncHeartbeatInterval = setInterval(() => {
+      this.syncCloudData();
+    }, 3500);
 
-    // Clicking sync badge manually forces an instant refresh
+    // 3. True Network Event Listeners
+    window.addEventListener('online', () => this.updateSyncBadge('online'));
+    window.addEventListener('offline', () => this.updateSyncBadge('offline'));
+
+    // 4. Clicking sync badge manually forces an instant cloud sync
     const syncIndicator = document.getElementById('syncStatusIndicator');
     if (syncIndicator) {
       syncIndicator.addEventListener('click', () => {
         this.updateSyncBadge('syncing');
-        this.syncServerData({ showToast: true, forceToast: true, force: true });
+        this.syncCloudData({ showToast: true, forceToast: true, force: true });
       });
     }
   }
@@ -643,7 +609,10 @@ class AutoCareCRM {
       indicator.className = 'sync-status-indicator syncing';
       if (textEl) textEl.textContent = this.currentLang === 'gu' ? 'સિંક...' : 'Syncing...';
       if (dotEl) dotEl.className = 'sync-dot';
-    } else if (state === 'offline') {
+      setTimeout(() => {
+        this.updateSyncBadge(navigator.onLine ? 'online' : 'offline');
+      }, 1200);
+    } else if (state === 'offline' || !navigator.onLine) {
       indicator.className = 'sync-status-indicator offline';
       if (textEl) textEl.textContent = this.currentLang === 'gu' ? 'ઑફલાઇન' : 'Offline';
       if (dotEl) dotEl.className = 'sync-dot';
@@ -656,6 +625,10 @@ class AutoCareCRM {
 
   loadData() {
     const saved = localStorage.getItem('momai_crm_data_v2');
+    const savedVer = localStorage.getItem('momai_crm_version');
+    if (savedVer) {
+      this.localDataVersion = Number(savedVer) || 0;
+    }
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -702,33 +675,48 @@ class AutoCareCRM {
   }
 
   saveData(options = {}) {
-    // 1. Instant save to local browser storage (works 100% offline)
+    const version = Date.now();
+    this.localDataVersion = version;
+
+    // 1. Instant save to local browser storage
     localStorage.setItem('momai_crm_data_v2', JSON.stringify(this.data));
+    localStorage.setItem('momai_crm_version', String(version));
 
-    // 2. Automatically save to physical hard drive (database.json + auto backup + live SSE broadcast)
-    if (window.location.protocol.startsWith('http')) {
-      const activeEmp = this.getActiveEmployee();
-      const payload = {
-        ...this.data,
-        deletedId: options.deletedId || null,
-        deletedIds: options.deletedIds || null,
-        lastModifiedBy: (activeEmp && activeEmp.name) ? activeEmp.name : 'Admin'
-      };
+    // 2. Broadcast to other tabs on same machine
+    if (this.broadcastChannel) {
+      try {
+        this.broadcastChannel.postMessage({ type: 'DATA_UPDATED', version: version });
+      } catch (e) {}
+    }
 
-      fetch('/api/data', {
+    const activeEmp = this.getActiveEmployee();
+    const payload = {
+      data: this.data,
+      version: version,
+      deletedId: options.deletedId || null,
+      deletedIds: options.deletedIds || null,
+      lastModifiedBy: (activeEmp && activeEmp.name) ? activeEmp.name : 'Admin',
+      lastModifiedAt: new Date().toISOString()
+    };
+
+    // 3. Multi-Laptop Cloud Sync Push
+    try {
+      fetch('https://kvdb.io/7z6pMomaiEnterpriseCrm99250/crm_database', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
-      })
-      .then(res => res.json())
-      .then(resData => {
-        if (resData && resData.version) {
-          this.localDataVersion = resData.version;
-        }
-      })
-      .catch(err => {
-        // Silent offline fallback
-      });
+      }).catch(() => {});
+    } catch (e) {}
+
+    // 4. Also push to local server API if running on localhost
+    if (window.location.protocol.startsWith('http') && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      try {
+        fetch('/api/data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).catch(() => {});
+      } catch (e) {}
     }
   }
 
@@ -854,14 +842,29 @@ class AutoCareCRM {
       });
     }
 
-    // Search input
-    this.searchInput.addEventListener('input', (e) => {
-      this.filterAllViews(e.target.value);
-    });
+    // Search input & clickable button
+    if (this.searchInput) {
+      this.searchInput.addEventListener('input', (e) => {
+        this.filterAllViews(e.target.value);
+      });
+      this.searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          this.filterAllViews(this.searchInput.value);
+        }
+      });
+    }
 
-    this.searchBtn.addEventListener('click', () => {
-      this.filterAllViews(this.searchInput.value);
-    });
+    if (this.searchBtn) {
+      this.searchBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const val = this.searchInput ? this.searchInput.value : '';
+        this.filterAllViews(val);
+        if (val.trim()) {
+          this.showToast(this.currentLang === 'gu' ? `શોધ પરિણામો: "${val}"` : `Search results for: "${val}"`, 'info');
+        }
+      });
+    }
 
     // Brand logo click -> returns to dashboard
     document.getElementById('btnBrandLogo').addEventListener('click', () => {
@@ -1805,9 +1808,9 @@ class AutoCareCRM {
   }
 
   // --- Render Full Customers View Table ---
-  renderFullCustomersTable() {
+  renderFullCustomersTable(customList = null) {
     this.fullCustomersTableBody.innerHTML = '';
-    let list = this.getFilteredCallingList();
+    let list = customList !== null ? customList : this.getFilteredCallingList();
 
     if (this.custVFilter !== 'all') {
       list = list.filter(c => (c.vehicleType || '4-wheeler') === this.custVFilter);
@@ -1862,9 +1865,9 @@ class AutoCareCRM {
   }
 
   // --- Render Documents View Table (Filterable by Tab & 2W/4W) ---
-  renderDocumentsTable() {
+  renderDocumentsTable(customList = null) {
     this.documentsTableBody.innerHTML = '';
-    let list = this.data.callingList;
+    let list = customList !== null ? customList : (this.data.callingList || []);
 
     // Filter by Tab
     if (this.docActiveTab !== 'all') {
@@ -2620,16 +2623,29 @@ class AutoCareCRM {
     if (!query) {
       this.renderCallingList(this.data.callingList);
       this.renderFullCustomersTable();
+      this.renderDocumentsTable();
+      this.renderNext7DaysList();
+      this.renderExpiredDocsList();
       return;
     }
-    const filtered = this.data.callingList.filter(c => 
-      c.name.toLowerCase().includes(query) ||
-      c.vehicle.toLowerCase().includes(query) ||
-      c.doc.toLowerCase().includes(query) ||
-      (c.phone && c.phone.includes(query)) ||
-      c.status.toLowerCase().includes(query)
-    );
+
+    const match = (c) => {
+      const name = (c.name || '').toLowerCase();
+      const veh = (c.vehicle || '').toLowerCase();
+      const doc = (c.doc || '').toLowerCase();
+      const phone = (c.phone || '').toLowerCase();
+      const status = (c.status || '').toLowerCase();
+      const remarks = (c.remarks || '').toLowerCase();
+      const createdBy = (c.createdBy || '').toLowerCase();
+      return name.includes(query) || veh.includes(query) || doc.includes(query) || phone.includes(query) || status.includes(query) || remarks.includes(query) || createdBy.includes(query);
+    };
+
+    const filtered = (this.data.callingList || []).filter(match);
     this.renderCallingList(filtered);
+    this.renderFullCustomersTable(filtered);
+    this.renderDocumentsTable(filtered);
+    this.renderNext7DaysList(filtered.filter(c => c.status === 'Due Soon' || (c.daysLeft && c.daysLeft.includes('Days'))));
+    this.renderExpiredDocsList(filtered.filter(c => (c.status || '').toLowerCase().includes('expired')));
   }
 
   openCustomerModal(customer = null) {
@@ -3042,9 +3058,11 @@ class AutoCareCRM {
   }
 
   checkAuth() {
+    if (this.isForgotPasswordOpen) return false;
     if (!this.currentSession || !this.currentSession.empId) {
       if (this.loginOverlay) {
         this.loginOverlay.style.display = 'flex';
+        this.loginOverlay.classList.remove('hidden');
       }
       return false;
     }
@@ -3053,11 +3071,13 @@ class AutoCareCRM {
       this.clearSession();
       if (this.loginOverlay) {
         this.loginOverlay.style.display = 'flex';
+        this.loginOverlay.classList.remove('hidden');
       }
       return false;
     }
     if (this.loginOverlay) {
       this.loginOverlay.style.display = 'none';
+      this.loginOverlay.classList.add('hidden');
     }
     return true;
   }
@@ -3107,7 +3127,12 @@ class AutoCareCRM {
 
   // --- Forgot Password & Email Reset Methods ---
   openForgotPasswordModal() {
+    if (!this.modalForgotPassword) {
+      this.modalForgotPassword = document.getElementById('modalForgotPassword');
+    }
     if (!this.modalForgotPassword) return;
+
+    this.isForgotPasswordOpen = true;
     this.forgotActiveIdentifier = (this.loginUsername && this.loginUsername.value.trim()) || 'admin';
     if (this.forgotStep1) this.forgotStep1.style.display = 'none';
     if (this.forgotStep2) this.forgotStep2.style.display = 'block';
@@ -3115,6 +3140,12 @@ class AutoCareCRM {
     
     if (this.forgotNewPass) this.forgotNewPass.value = '';
     if (this.forgotConfirmPass) this.forgotConfirmPass.value = '';
+
+    // Hide login screen cleanly so password reset modal opens in full view
+    if (this.loginOverlay) {
+      this.loginOverlay.style.display = 'none';
+      this.loginOverlay.classList.add('hidden');
+    }
     
     this.modalForgotPassword.classList.add('active');
     
@@ -3123,7 +3154,12 @@ class AutoCareCRM {
   }
 
   openPasswordResetDirect(user = 'admin', token = '', otp = '') {
+    if (!this.modalForgotPassword) {
+      this.modalForgotPassword = document.getElementById('modalForgotPassword');
+    }
     if (!this.modalForgotPassword) return;
+
+    this.isForgotPasswordOpen = true;
     this.forgotActiveIdentifier = user || 'admin';
     if (this.forgotStep1) this.forgotStep1.style.display = 'none';
     if (this.forgotStep2) this.forgotStep2.style.display = 'block';
@@ -3138,6 +3174,11 @@ class AutoCareCRM {
     if (this.forgotNewPass) this.forgotNewPass.value = '';
     if (this.forgotConfirmPass) this.forgotConfirmPass.value = '';
 
+    if (this.loginOverlay) {
+      this.loginOverlay.style.display = 'none';
+      this.loginOverlay.classList.add('hidden');
+    }
+
     this.modalForgotPassword.classList.add('active');
     setTimeout(() => {
       if (this.forgotNewPass) this.forgotNewPass.focus();
@@ -3149,8 +3190,11 @@ class AutoCareCRM {
   }
 
   closeForgotPasswordModal() {
-    if (!this.modalForgotPassword) return;
-    this.modalForgotPassword.classList.remove('active');
+    this.isForgotPasswordOpen = false;
+    if (this.modalForgotPassword) {
+      this.modalForgotPassword.classList.remove('active');
+    }
+    this.checkAuth();
   }
 
   async sendForgotPasswordOtp(isSilent = false) {
