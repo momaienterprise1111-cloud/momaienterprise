@@ -1,7 +1,5 @@
 // Momai Enterprise CRM - Cloudflare Worker Backend
-// Connects to RESTful Master Cloud Database & Delivers Static Assets
-
-const CLOUD_MASTER_URL = 'https://api.restful-api.dev/objects/ff808181a067127101a096ac7835033a';
+// Powered by Native Cloudflare Workers KV (MOMAI_CRM_KV) for 100% Reliable Cross-Device Sync
 
 export default {
   async fetch(request, env) {
@@ -21,50 +19,51 @@ export default {
 
     // Real-Time Cross-Device Data Sync API (/api/data or /api/sync)
     if (url.pathname === '/api/data' || url.pathname === '/api/sync') {
-      // 1. POST / PUT: Save customer data, passwords, and records to persistent cloud store
+      // 1. POST / PUT: Save customer data, passwords, and records to Cloudflare KV
       if (request.method === 'POST' || request.method === 'PUT') {
         try {
           const body = await request.json();
           const version = (body.data && body.data.version) || body.version || Date.now();
           const payload = {
-            name: 'Momai_CRM_Master_DB',
-            data: body.data || body
+            success: true,
+            version: version,
+            data: body.data || body,
+            lastModifiedBy: body.lastModifiedBy || 'Admin',
+            lastModifiedAt: body.lastModifiedAt || new Date().toISOString()
           };
 
-          const cloudRes = await fetch(CLOUD_MASTER_URL, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
+          if (env.MOMAI_CRM_KV) {
+            await env.MOMAI_CRM_KV.put('CRM_MASTER_STORE', JSON.stringify(payload));
+          }
 
           return new Response(JSON.stringify({
             success: true,
             version: version,
             count: (payload.data && payload.data.callingList) ? payload.data.callingList.length : 0,
-            message: 'Data successfully synchronized across all laptops & devices'
+            message: 'Data successfully synchronized across all laptops via Cloudflare KV'
           }), { headers: corsHeaders });
         } catch (err) {
           return new Response(JSON.stringify({ success: false, error: err.message }), { status: 400, headers: corsHeaders });
         }
       }
 
-      // 2. GET: Read latest data from persistent cloud store
-      try {
-        const cloudRes = await fetch(CLOUD_MASTER_URL + '?t=' + Date.now(), { cache: 'no-store' });
-        if (cloudRes.ok) {
-          const raw = await cloudRes.json();
-          if (raw && raw.data) {
-            return new Response(JSON.stringify(raw.data), { headers: corsHeaders });
+      // 2. GET: Read latest data from Cloudflare KV
+      if (env.MOMAI_CRM_KV) {
+        try {
+          const rawKv = await env.MOMAI_CRM_KV.get('CRM_MASTER_STORE');
+          if (rawKv) {
+            const parsed = JSON.parse(rawKv);
+            return new Response(JSON.stringify(parsed), { headers: corsHeaders });
           }
+        } catch (cErr) {
+          console.warn('Cloudflare KV fetch error:', cErr);
         }
-      } catch (cErr) {
-        console.warn('Cloud store fetch error:', cErr);
       }
 
       return new Response(JSON.stringify({
         success: true,
         data: null,
-        message: 'No data stored yet in cloud'
+        message: 'No data stored yet in Cloudflare KV'
       }), { headers: corsHeaders });
     }
 
@@ -72,7 +71,8 @@ export default {
     if (url.pathname === '/api/data/status' || url.pathname === '/api/health') {
       return new Response(JSON.stringify({
         status: 'online',
-        service: 'Momai Enterprise CRM Live Cloud Engine',
+        kv_bound: Boolean(env.MOMAI_CRM_KV),
+        service: 'Momai Enterprise CRM Cloudflare KV Engine',
         timestamp: Date.now()
       }), { headers: corsHeaders });
     }

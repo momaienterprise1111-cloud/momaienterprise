@@ -7,6 +7,12 @@
     "directory": "./public",
     "binding": "ASSETS"
   },
+  "kv_namespaces": [
+    {
+      "binding": "MOMAI_CRM_KV",
+      "id": "9788a1a73a034479ab7d77de84083fba"
+    }
+  ],
   "observability": {
     "enabled": true
   }

@@ -487,31 +487,17 @@ class AutoCareCRM {
       let serverPayload = null;
       let cloudVer = 0;
 
-      // 1. Primary Direct Cloud Store: Live RESTful Master Database
+      // 1. Primary Cloud Store: Native Cloudflare Worker KV (/api/data)
       try {
-        const res = await fetch('https://api.restful-api.dev/objects/ff808181a067127101a096ac7835033a?t=' + Date.now(), { cache: 'no-store' });
+        const res = await fetch('/api/data?t=' + Date.now(), { cache: 'no-store' });
         if (res.ok) {
           const raw = await res.json();
-          if (raw && raw.data && (raw.data.callingList || raw.data.employees)) {
-            serverPayload = raw.data;
-            cloudVer = raw.data.version || raw.data._version || 0;
+          if (raw && (raw.data || raw.callingList || raw.employees)) {
+            serverPayload = raw.data || raw;
+            cloudVer = raw.version || serverPayload._version || (serverPayload.data && serverPayload.data.version) || 0;
           }
         }
       } catch (e) {}
-
-      // 2. Secondary Cloud Store: /api/data
-      if (!serverPayload || (!serverPayload.callingList && !serverPayload.employees)) {
-        try {
-          const res = await fetch('/api/data?t=' + Date.now(), { cache: 'no-store' });
-          if (res.ok) {
-            const raw = await res.json();
-            if (raw && (raw.data || raw.callingList)) {
-              serverPayload = raw.data || raw;
-              cloudVer = raw.version || serverPayload._version || 0;
-            }
-          }
-        } catch (e) {}
-      }
 
       const localListCount = (this.data && this.data.callingList) ? this.data.callingList.length : 0;
 
@@ -746,29 +732,7 @@ class AutoCareCRM {
       lastModifiedAt: new Date().toISOString()
     };
 
-    // 3. Direct Multi-Device Cloud Sync Push (Live RESTful Master Database)
-    try {
-      fetch('https://api.restful-api.dev/objects/ff808181a067127101a096ac7835033a', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: 'Momai_CRM_Master_DB',
-          data: {
-            callingList: this.data.callingList || [],
-            employees: this.data.employees || [],
-            documentTypes: this.data.documentTypes || [],
-            admin: this.data.admin || {},
-            version: version,
-            deletedId: options.deletedId || null,
-            deletedIds: options.deletedIds || null,
-            lastModifiedBy: (activeEmp && activeEmp.name) ? activeEmp.name : 'Admin',
-            lastModifiedAt: new Date().toISOString()
-          }
-        })
-      }).catch(() => {});
-    } catch (e) {}
-
-    // 4. Also push to /api/data endpoint
+    // 3. Multi-Laptop Cloud Sync Push to /api/data (Cloudflare KV Native Engine)
     if (window.location.protocol.startsWith('http')) {
       try {
         fetch('/api/data', {
