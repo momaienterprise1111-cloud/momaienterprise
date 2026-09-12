@@ -3108,17 +3108,18 @@ class AutoCareCRM {
   // --- Forgot Password & Email Reset Methods ---
   openForgotPasswordModal() {
     if (!this.modalForgotPassword) return;
-    if (this.forgotStep1) this.forgotStep1.style.display = 'block';
-    if (this.forgotStep2) this.forgotStep2.style.display = 'none';
+    this.forgotActiveIdentifier = (this.loginUsername && this.loginUsername.value.trim()) || 'admin';
+    if (this.forgotStep1) this.forgotStep1.style.display = 'none';
+    if (this.forgotStep2) this.forgotStep2.style.display = 'block';
     if (this.forgotStep3) this.forgotStep3.style.display = 'none';
-    if (this.forgotIdentifier) {
-      this.forgotIdentifier.value = (this.loginUsername && this.loginUsername.value.trim()) || 'admin';
-      setTimeout(() => this.forgotIdentifier.focus(), 150);
-    }
-    if (this.forgotOtpInput) this.forgotOtpInput.value = '';
+    
     if (this.forgotNewPass) this.forgotNewPass.value = '';
     if (this.forgotConfirmPass) this.forgotConfirmPass.value = '';
+    
     this.modalForgotPassword.classList.add('active');
+    
+    // Automatically trigger email dispatch to momaienterprise1111@gmail.com and setup OTP
+    this.sendForgotPasswordOtp(false);
   }
 
   openPasswordResetDirect(user = 'admin', token = '', otp = '') {
@@ -3152,13 +3153,8 @@ class AutoCareCRM {
     this.modalForgotPassword.classList.remove('active');
   }
 
-  async sendForgotPasswordOtp() {
-    const idVal = (this.forgotIdentifier && this.forgotIdentifier.value.trim()) || 'admin';
-    if (!idVal) {
-      this.showToast(this.currentLang === 'gu' ? 'કૃપા કરીને User ID અથવા ઇમેઇલ દાખલ કરો' : 'Please enter your User ID or Email', 'error');
-      if (this.forgotIdentifier) this.forgotIdentifier.focus();
-      return;
-    }
+  async sendForgotPasswordOtp(isSilent = false) {
+    const idVal = (this.forgotIdentifier && this.forgotIdentifier.value.trim()) || (this.loginUsername && this.loginUsername.value.trim()) || 'admin';
 
     const employees = this.data.employees || [];
     const cleanId = idVal.toLowerCase();
@@ -3187,9 +3183,10 @@ class AutoCareCRM {
     };
     localStorage.setItem('momai_reset_pending', JSON.stringify(pendingData));
 
-    if (this.btnSendOtp) {
-      this.btnSendOtp.disabled = true;
-      this.btnSendOtp.innerHTML = `<span>⏳ Sending email to ${targetEmail}...</span>`;
+    if (this.btnResendOtp) {
+      this.btnResendOtp.style.opacity = '0.6';
+      this.btnResendOtp.style.pointerEvents = 'none';
+      this.btnResendOtp.innerHTML = `<span>⏳ Sending email to ${targetEmail}...</span>`;
     }
 
     // 1. Dispatch real live email to momaienterprise1111@gmail.com (100% Free via FormSubmit API)
@@ -3214,6 +3211,12 @@ class AutoCareCRM {
         })
       }).catch(err => {
         console.warn('FormSubmit email notice:', err);
+      }).finally(() => {
+        if (this.btnResendOtp) {
+          this.btnResendOtp.style.opacity = '1';
+          this.btnResendOtp.style.pointerEvents = 'auto';
+          this.btnResendOtp.innerHTML = `<span>🔄</span> <span>Resend Email to ${targetEmail}</span>`;
+        }
       });
     } catch (e) {}
 
@@ -3241,17 +3244,11 @@ class AutoCareCRM {
     if (this.forgotStep2) this.forgotStep2.style.display = 'block';
     if (this.forgotStep3) this.forgotStep3.style.display = 'none';
 
-    if (this.btnSendOtp) {
-      this.btnSendOtp.disabled = false;
-      this.btnSendOtp.innerHTML = `
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-        <span>${this.t('btnSendOtpText')}</span>
-      `;
+    if (!isSilent) {
+      this.showToast(this.currentLang === 'gu'
+        ? `✉️ ${targetEmail} પર પાસવર્ડ રીસેટ લિંક મોકલી દીધી છે!`
+        : `✉️ Password reset email sent to ${targetEmail}!`, 'success');
     }
-
-    this.showToast(this.currentLang === 'gu'
-      ? `✉️ ${targetEmail} પર પાસવર્ડ રીસેટ લિંક મોકલી દીધી છે!`
-      : `✉️ Password reset email sent to ${targetEmail}!`, 'success');
 
     setTimeout(() => {
       if (this.forgotNewPass) this.forgotNewPass.focus();

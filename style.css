@@ -3403,5 +3403,159 @@ body {
   100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
 }
 
+/* ==========================================================================
+   Modern Password Reset Modal Styles
+   ========================================================================== */
+.reset-email-banner {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 1.5px solid #86efac;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
+}
+
+.reset-email-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #166534;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+}
+
+.reset-email-badge .pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ade80;
+  animation: syncPulse 1.5s infinite;
+}
+
+.reset-email-title {
+  font-size: 12.5px;
+  color: #166534;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.reset-email-target {
+  font-size: 15px;
+  font-weight: 800;
+  color: #14532d;
+  word-break: break-all;
+  letter-spacing: 0.2px;
+  margin-bottom: 6px;
+}
+
+.reset-email-subtext {
+  font-size: 12px;
+  color: #15803d;
+  line-height: 1.45;
+  border-top: 1px dashed #bbf7d0;
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
+.reset-input-group {
+  margin-bottom: 16px;
+}
+
+.reset-input-group label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.reset-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.reset-input-wrap:focus-within {
+  border-color: #4f46e5;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.reset-input-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 12px;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.reset-input-field {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 11px 12px;
+  font-size: 14px;
+  color: #0f172a;
+  outline: none;
+  font-family: inherit;
+}
+
+.reset-input-field::placeholder {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.btn-update-password {
+  width: 100%;
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-update-password:hover {
+  background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.35);
+}
+
+.btn-resend-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #4f46e5;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-resend-link:hover {
+  color: #3730a3;
+  text-decoration: underline;
+}
+
 
 
