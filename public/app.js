@@ -11,19 +11,17 @@
  */
 
 // --- Default Data with Vehicle Types matching the provided screenshot ---
+// --- Default Data with Clean Starting State for Live Deployment ---
 const DEFAULT_DATA = {
   admin: {
-    name: 'Sabir Ajmeri',
+    name: 'Momai Admin',
     role: 'Admin',
-    initials: 'SA',
-    welcomeName: 'Sabir',
+    initials: 'MA',
+    welcomeName: 'Admin',
     phone: '+91 99250 23570'
   },
   employees: [
-    { id: 'emp1', name: 'Sabir Ajmeri', role: 'Admin', username: 'admin', password: 'admin123', phone: '+91 99250 23570', email: 'sabir@momai.com' },
-    { id: 'emp2', name: 'Kavita Dave', role: 'Telecaller', username: 'kavita', password: '1234', phone: '+91 98250 88776', email: 'kavita@momai.com' },
-    { id: 'emp3', name: 'Hitesh Solanki', role: 'Telecaller', username: 'hitesh', password: '1234', phone: '+91 98790 44332', email: 'hitesh@momai.com' },
-    { id: 'emp4', name: 'Mayur Vaghela', role: 'Manager', username: 'mayur', password: '1234', phone: '+91 99090 12121', email: 'mayur@momai.com' }
+    { id: 'emp1', name: 'Momai Admin', role: 'Admin', username: 'admin', password: 'admin123', phone: '+91 99250 23570', email: 'momaienterprise1111@gmail.com' }
   ],
   activeEmployeeId: 'emp1',
   slogans: {
@@ -32,28 +30,28 @@ const DEFAULT_DATA = {
     footer: 'Customers Today. Safer Journeys Tomorrow.'
   },
   metrics: {
-    totalCustomers: '1,248',
-    totalCustomersSub: '+28 this month',
-    todayFollowups: '26',
-    expiredDocs: '14',
-    next7Days: '38',
-    next30Days: '112'
+    totalCustomers: '0',
+    totalCustomersSub: '0 this month',
+    todayFollowups: '0',
+    expiredDocs: '0',
+    next7Days: '0',
+    next30Days: '0'
   },
   docStatus: {
-    insuranceExpiring: 48,
-    insuranceExpired: 12,
-    fitnessExpiring: 28,
-    fitnessExpired: 6,
-    pucExpiring: 36,
-    pucExpired: 18,
-    newLicenceExpiring: 14,
-    newLicenceExpired: 2,
-    renewalLicenceExpiring: 22,
-    renewalLicenceExpired: 4,
-    rcTransferExpiring: 18,
-    rcTransferExpired: 3,
-    vehiclePassingExpiring: 16,
-    vehiclePassingExpired: 5
+    insuranceExpiring: 0,
+    insuranceExpired: 0,
+    fitnessExpiring: 0,
+    fitnessExpired: 0,
+    pucExpiring: 0,
+    pucExpired: 0,
+    newLicenceExpiring: 0,
+    newLicenceExpired: 0,
+    renewalLicenceExpiring: 0,
+    renewalLicenceExpired: 0,
+    rcTransferExpiring: 0,
+    rcTransferExpired: 0,
+    vehiclePassingExpiring: 0,
+    vehiclePassingExpired: 0
   },
   documentTypes: [
     { id: 'insurance', name: 'Insurance', icon: '🛡️', color: 'blue' },
@@ -64,132 +62,10 @@ const DEFAULT_DATA = {
     { id: 'rc-transfer', name: 'RC Transfer', icon: '🔁', color: 'indigo' },
     { id: 'vehicle-passing', name: 'Vehicle Passing', icon: '📋', color: 'teal' }
   ],
-  callingList: [
-    {
-      id: 'c1',
-      name: 'Rajesh Patel',
-      vehicleType: '4-wheeler',
-      vehicle: 'GJ01AB1234',
-      doc: 'Insurance',
-      expiry: '15 Sep 2026',
-      expiryRaw: '2026-09-15',
-      daysLeft: '6 Days',
-      daysType: 'red',
-      status: 'Due Soon',
-      phone: '9825012345',
-      assignedStaff: 'emp1',
-      createdBy: 'Sabir Ajmeri',
-      createdById: 'emp1',
-      createdAt: '05 Sep 2026, 11:30 AM',
-      contacted: false
-    },
-    {
-      id: 'c2',
-      name: 'Priya Shah',
-      vehicleType: '2-wheeler',
-      vehicle: 'GJ27CD5678',
-      doc: 'PUC',
-      expiry: '09 Sep 2026',
-      daysLeft: 'Today',
-      daysType: 'red',
-      status: 'Expiry Today',
-      phone: '9898023456',
-      assignedStaff: 'emp2',
-      createdBy: 'Kavita Dave',
-      createdById: 'emp2',
-      createdAt: '06 Sep 2026, 02:15 PM',
-      contacted: true
-    },
-    {
-      id: 'c3',
-      name: 'Amit Trivedi',
-      vehicleType: 'commercial',
-      vehicle: 'GJ01EF9012',
-      doc: 'Fitness',
-      expiry: '12 Sep 2026',
-      daysLeft: '3 Days',
-      daysType: 'red',
-      status: 'Due Soon',
-      phone: '9723034567',
-      assignedStaff: 'emp3',
-      createdBy: 'Hitesh Solanki',
-      createdById: 'emp3',
-      createdAt: '07 Sep 2026, 10:45 AM',
-      contacted: false
-    },
-    {
-      id: 'c4',
-      name: 'Mehul Desai',
-      vehicleType: '4-wheeler',
-      vehicle: 'GJ38GH3456',
-      doc: 'Insurance',
-      expiry: '20 Sep 2026',
-      daysLeft: '11 Days',
-      daysType: 'normal',
-      status: 'Upcoming',
-      phone: '9824045678',
-      assignedStaff: 'emp1',
-      createdBy: 'Sabir Ajmeri',
-      createdById: 'emp1',
-      createdAt: '07 Sep 2026, 04:20 PM',
-      contacted: false
-    },
-    {
-      id: 'c5',
-      name: 'Nisha Bhatt',
-      vehicleType: '2-wheeler',
-      vehicle: 'GJ01IJ7890',
-      doc: 'PUC',
-      expiry: '09 Sep 2026',
-      daysLeft: 'Today',
-      daysType: 'red',
-      status: 'Expiry Today',
-      phone: '9909056789',
-      assignedStaff: 'emp2',
-      createdBy: 'Kavita Dave',
-      createdById: 'emp2',
-      createdAt: '08 Sep 2026, 01:10 PM',
-      contacted: false
-    },
-    {
-      id: 'c6',
-      name: 'Ketan Shah',
-      vehicleType: '4-wheeler',
-      vehicle: 'GJ27KL1122',
-      doc: 'Fitness',
-      expiry: '18 Sep 2026',
-      daysLeft: '9 Days',
-      daysType: 'red',
-      status: 'Due Soon',
-      phone: '9879067890',
-      assignedStaff: 'emp4',
-      createdBy: 'Mayur Vaghela',
-      createdById: 'emp4',
-      createdAt: '08 Sep 2026, 05:00 PM',
-      contacted: false
-    }
-  ],
-  next7DaysList: [
-    { id: 'n1', name: 'Viral Mehta', vehicleType: '4-wheeler', vehicle: 'GJ01MN3344', doc: 'Insurance', expiry: '12 Sep 2026', days: '3', phone: '9825111111' },
-    { id: 'n2', name: 'Sonal Patel', vehicleType: '2-wheeler', vehicle: 'GJ38OP5566', doc: 'PUC', expiry: '13 Sep 2026', days: '4', phone: '9825222222' },
-    { id: 'n3', name: 'Ravi Parmar', vehicleType: 'commercial', vehicle: 'GJ27QR7788', doc: 'Fitness', expiry: '14 Sep 2026', days: '5', phone: '9825333333' },
-    { id: 'n4', name: 'Deepti Joshi', vehicleType: '4-wheeler', vehicle: 'GJ01ST9900', doc: 'Insurance', expiry: '15 Sep 2026', days: '6', phone: '9825444444' },
-    { id: 'n5', name: 'Harshil Shah', vehicleType: '2-wheeler', vehicle: 'GJ18UV2233', doc: 'PUC', expiry: '16 Sep 2026', days: '7', phone: '9825555555' }
-  ],
-  expiredDocsList: [
-    { id: 'e1', name: 'Kiran Solanki', vehicleType: '2-wheeler', vehicle: 'GJ01WX4455', doc: 'PUC', expiredOn: '25 Aug 2026', phone: '9825666666' },
-    { id: 'e2', name: 'Bhavesh Rana', vehicleType: '4-wheeler', vehicle: 'GJ27YZ6677', doc: 'Insurance', expiredOn: '28 Aug 2026', phone: '9825777777' },
-    { id: 'e3', name: 'Nilesh Patel', vehicleType: 'commercial', vehicle: 'GJ38AB8899', doc: 'Fitness', expiredOn: '30 Aug 2026', phone: '9825888888' },
-    { id: 'e4', name: 'Hetal Shah', vehicleType: '2-wheeler', vehicle: 'GJ01CD1122', doc: 'PUC', expiredOn: '02 Sep 2026', phone: '9825999999' },
-    { id: 'e5', name: 'Manish Jain', vehicleType: '4-wheeler', vehicle: 'GJ18EF3344', doc: 'Insurance', expiredOn: '03 Sep 2026', phone: '9825000000' }
-  ],
-  activities: [
-    { id: 'a1', type: 'whatsapp', text: 'WhatsApp sent to Rajesh Patel (4W)', time: '2 hours ago' },
-    { id: 'a2', type: 'call', text: 'Called Priya Shah (2W) - Contacted', time: '3 hours ago' },
-    { id: 'a3', type: 'send', text: 'Reminder sent to Amit Trivedi (Commercial)', time: '5 hours ago' },
-    { id: 'a4', type: 'contacted', text: 'Marked as contacted - Mehul Desai (4W)', time: '6 hours ago' },
-    { id: 'a5', type: 'expired', text: 'Document expired - Kiran Solanki (2W)', time: '8 hours ago' }
-  ]
+  callingList: [],
+  next7DaysList: [],
+  expiredDocsList: [],
+  activities: []
 };
 
 // --- Bilingual Translation Dictionary ---
@@ -638,9 +514,9 @@ class AutoCareCRM {
           serverData.callingList.forEach(c => {
             if (!c.createdBy) {
               const emp = (serverData.employees || []).find(e => e.id === c.assignedStaff);
-              c.createdBy = emp ? emp.name : 'Sabir Ajmeri';
+              c.createdBy = emp ? emp.name : 'Momai Admin';
               c.createdById = emp ? emp.id : 'emp1';
-              c.createdAt = '05 Sep 2026, 11:30 AM';
+              c.createdAt = '12 Sep 2026, 11:30 AM';
             }
           });
           if (!serverData.documentTypes || !Array.isArray(serverData.documentTypes) || serverData.documentTypes.length === 0) {
@@ -655,7 +531,7 @@ class AutoCareCRM {
           const isUserTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
 
           this.data = serverData;
-          localStorage.setItem('momai_crm_data_v1', JSON.stringify(serverData));
+          localStorage.setItem('momai_crm_data_v2', JSON.stringify(serverData));
 
           if (!isUserTyping || options.force) {
             this.render();
@@ -779,7 +655,7 @@ class AutoCareCRM {
   }
 
   loadData() {
-    const saved = localStorage.getItem('momai_crm_data_v1') || localStorage.getItem('autocare_crm_data_v2') || localStorage.getItem('autocare_crm_data');
+    const saved = localStorage.getItem('momai_crm_data_v2');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -811,9 +687,9 @@ class AutoCareCRM {
           parsed.callingList.forEach(c => {
             if (!c.createdBy) {
               const emp = (parsed.employees || []).find(e => e.id === c.assignedStaff);
-              c.createdBy = emp ? emp.name : 'Sabir Ajmeri';
+              c.createdBy = emp ? emp.name : 'Momai Admin';
               c.createdById = emp ? emp.id : 'emp1';
-              c.createdAt = '05 Sep 2026, 11:30 AM';
+              c.createdAt = '12 Sep 2026, 11:30 AM';
             }
           });
         }
@@ -827,7 +703,7 @@ class AutoCareCRM {
 
   saveData(options = {}) {
     // 1. Instant save to local browser storage (works 100% offline)
-    localStorage.setItem('momai_crm_data_v1', JSON.stringify(this.data));
+    localStorage.setItem('momai_crm_data_v2', JSON.stringify(this.data));
 
     // 2. Automatically save to physical hard drive (database.json + auto backup + live SSE broadcast)
     if (window.location.protocol.startsWith('http')) {
@@ -1692,39 +1568,43 @@ class AutoCareCRM {
       btnResetDefaults.style.display = isAdmin ? 'inline-block' : 'none';
     }
 
-    // 5. Update Metrics Cards
+    // 5. Update Dynamic Metrics & docStatus from live customer data
+    this.updateMetricsFromData();
+
+    // Update Metrics Cards
     const valTotalCustomers = document.getElementById('valTotalCustomers');
-    if (valTotalCustomers) valTotalCustomers.textContent = this.data.metrics.totalCustomers;
+    if (valTotalCustomers) valTotalCustomers.textContent = this.data.metrics.totalCustomers || '0';
     const subTotalCustomers = document.getElementById('subTotalCustomers');
-    if (subTotalCustomers) subTotalCustomers.textContent = this.data.metrics.totalCustomersSub;
+    if (subTotalCustomers) subTotalCustomers.textContent = this.data.metrics.totalCustomersSub || '0 this month';
     const valTodayFollowups = document.getElementById('valTodayFollowups');
-    if (valTodayFollowups) valTodayFollowups.textContent = this.data.metrics.todayFollowups;
+    if (valTodayFollowups) valTodayFollowups.textContent = this.data.metrics.todayFollowups || '0';
     const valExpiredDocs = document.getElementById('valExpiredDocs');
-    if (valExpiredDocs) valExpiredDocs.textContent = this.data.metrics.expiredDocs;
+    if (valExpiredDocs) valExpiredDocs.textContent = this.data.metrics.expiredDocs || '0';
     const valNext7Days = document.getElementById('valNext7Days');
-    if (valNext7Days) valNext7Days.textContent = this.data.metrics.next7Days;
+    if (valNext7Days) valNext7Days.textContent = this.data.metrics.next7Days || '0';
     const valNext30Days = document.getElementById('valNext30Days');
-    if (valNext30Days) valNext30Days.textContent = this.data.metrics.next30Days;
+    if (valNext30Days) valNext30Days.textContent = this.data.metrics.next30Days || '0';
 
     // 6. Update Document Status widget counts
     const setSafeText = (id, text) => {
       const el = document.getElementById(id);
       if (el) el.textContent = text;
     };
-    setSafeText('countInsuranceExpiring', `${(this.data.docStatus && this.data.docStatus.insuranceExpiring) || 48} ${this.t('expiringLabel')}`);
-    setSafeText('countInsuranceExpired', `${(this.data.docStatus && this.data.docStatus.insuranceExpired) || 12} ${this.t('expiredLabel')}`);
-    setSafeText('countFitnessExpiring', `${(this.data.docStatus && this.data.docStatus.fitnessExpiring) || 28} ${this.t('expiringLabel')}`);
-    setSafeText('countFitnessExpired', `${(this.data.docStatus && this.data.docStatus.fitnessExpired) || 6} ${this.t('expiredLabel')}`);
-    setSafeText('countPucExpiring', `${(this.data.docStatus && this.data.docStatus.pucExpiring) || 36} ${this.t('expiringLabel')}`);
-    setSafeText('countPucExpired', `${(this.data.docStatus && this.data.docStatus.pucExpired) || 18} ${this.t('expiredLabel')}`);
-    setSafeText('countNewLicenceExpiring', `${(this.data.docStatus && this.data.docStatus.newLicenceExpiring) || 14} ${this.currentLang === 'gu' ? 'સક્રિય' : 'Active'}`);
-    setSafeText('countNewLicenceExpired', `${(this.data.docStatus && this.data.docStatus.newLicenceExpired) || 2} ${this.t('expiredLabel')}`);
-    setSafeText('countRenewalLicenceExpiring', `${(this.data.docStatus && this.data.docStatus.renewalLicenceExpiring) || 22} ${this.t('expiringLabel')}`);
-    setSafeText('countRenewalLicenceExpired', `${(this.data.docStatus && this.data.docStatus.renewalLicenceExpired) || 4} ${this.t('expiredLabel')}`);
-    setSafeText('countRcTransferExpiring', `${(this.data.docStatus && this.data.docStatus.rcTransferExpiring) || 18} ${this.currentLang === 'gu' ? 'ચાલુ' : 'In Progress'}`);
-    setSafeText('countRcTransferExpired', `${(this.data.docStatus && this.data.docStatus.rcTransferExpired) || 3} ${this.currentLang === 'gu' ? 'બાકી' : 'Pending'}`);
-    setSafeText('countVehiclePassingExpiring', `${(this.data.docStatus && this.data.docStatus.vehiclePassingExpiring) || 16} ${this.t('expiringLabel')}`);
-    setSafeText('countVehiclePassingExpired', `${(this.data.docStatus && this.data.docStatus.vehiclePassingExpired) || 5} ${this.t('expiredLabel')}`);
+    const ds = this.data.docStatus || {};
+    setSafeText('countInsuranceExpiring', `${ds.insuranceExpiring !== undefined ? ds.insuranceExpiring : 0} ${this.t('expiringLabel')}`);
+    setSafeText('countInsuranceExpired', `${ds.insuranceExpired !== undefined ? ds.insuranceExpired : 0} ${this.t('expiredLabel')}`);
+    setSafeText('countFitnessExpiring', `${ds.fitnessExpiring !== undefined ? ds.fitnessExpiring : 0} ${this.t('expiringLabel')}`);
+    setSafeText('countFitnessExpired', `${ds.fitnessExpired !== undefined ? ds.fitnessExpired : 0} ${this.t('expiredLabel')}`);
+    setSafeText('countPucExpiring', `${ds.pucExpiring !== undefined ? ds.pucExpiring : 0} ${this.t('expiringLabel')}`);
+    setSafeText('countPucExpired', `${ds.pucExpired !== undefined ? ds.pucExpired : 0} ${this.t('expiredLabel')}`);
+    setSafeText('countNewLicenceExpiring', `${ds.newLicenceExpiring !== undefined ? ds.newLicenceExpiring : 0} ${this.currentLang === 'gu' ? 'સક્રિય' : 'Active'}`);
+    setSafeText('countNewLicenceExpired', `${ds.newLicenceExpired !== undefined ? ds.newLicenceExpired : 0} ${this.t('expiredLabel')}`);
+    setSafeText('countRenewalLicenceExpiring', `${ds.renewalLicenceExpiring !== undefined ? ds.renewalLicenceExpiring : 0} ${this.t('expiringLabel')}`);
+    setSafeText('countRenewalLicenceExpired', `${ds.renewalLicenceExpired !== undefined ? ds.renewalLicenceExpired : 0} ${this.t('expiredLabel')}`);
+    setSafeText('countRcTransferExpiring', `${ds.rcTransferExpiring !== undefined ? ds.rcTransferExpiring : 0} ${this.currentLang === 'gu' ? 'ચાલુ' : 'In Progress'}`);
+    setSafeText('countRcTransferExpired', `${ds.rcTransferExpired !== undefined ? ds.rcTransferExpired : 0} ${this.currentLang === 'gu' ? 'બાકી' : 'Pending'}`);
+    setSafeText('countVehiclePassingExpiring', `${ds.vehiclePassingExpiring !== undefined ? ds.vehiclePassingExpiring : 0} ${this.t('expiringLabel')}`);
+    setSafeText('countVehiclePassingExpired', `${ds.vehiclePassingExpired !== undefined ? ds.vehiclePassingExpired : 0} ${this.t('expiredLabel')}`);
 
     // 7. Update Dynamic Document Types across all UI components
     this.renderDynamicDocumentTypes();
@@ -1734,11 +1614,11 @@ class AutoCareCRM {
     const callingListCountEl = document.getElementById('callingListCount');
     if (callingListCountEl) callingListCountEl.textContent = `(${filteredCalling.length} ${this.t('navCustomers')})`;
     const next7DaysCountEl = document.getElementById('next7DaysCount');
-    if (next7DaysCountEl) next7DaysCountEl.textContent = `(${this.data.next7DaysList.length})`;
+    if (next7DaysCountEl) next7DaysCountEl.textContent = `(${this.data.next7DaysList ? this.data.next7DaysList.length : 0})`;
     const expiredDocsCountEl = document.getElementById('expiredDocsCount');
-    if (expiredDocsCountEl) expiredDocsCountEl.textContent = `(${this.data.expiredDocsList.length})`;
+    if (expiredDocsCountEl) expiredDocsCountEl.textContent = `(${this.data.expiredDocsList ? this.data.expiredDocsList.length : 0})`;
     const custTotalCountBadgeEl = document.getElementById('custTotalCountBadge');
-    if (custTotalCountBadgeEl) custTotalCountBadgeEl.textContent = `(${filteredCalling.length + 1200})`;
+    if (custTotalCountBadgeEl) custTotalCountBadgeEl.textContent = `(${filteredCalling.length})`;
 
     // 8. Render Dynamic Tables & Lists
     this.renderCallingList(filteredCalling);
@@ -1749,6 +1629,71 @@ class AutoCareCRM {
 
     // Render current active view
     this.renderViewData(this.currentView);
+  }
+
+  updateMetricsFromData() {
+    if (!this.data.callingList) return;
+    const list = this.data.callingList;
+
+    let todayCount = 0;
+    let expiredCount = 0;
+    let next7Count = 0;
+    let next30Count = 0;
+
+    const docCounts = {
+      insuranceExpiring: 0,
+      insuranceExpired: 0,
+      fitnessExpiring: 0,
+      fitnessExpired: 0,
+      pucExpiring: 0,
+      pucExpired: 0,
+      newLicenceExpiring: 0,
+      newLicenceExpired: 0,
+      renewalLicenceExpiring: 0,
+      renewalLicenceExpired: 0,
+      rcTransferExpiring: 0,
+      rcTransferExpired: 0,
+      vehiclePassingExpiring: 0,
+      vehiclePassingExpired: 0
+    };
+
+    list.forEach(c => {
+      const days = this.getDaysRemainingNumber(c);
+      const isExp = (c.status || '').toLowerCase().includes('expired') || days < 0;
+      const isToday = (c.status || '').toLowerCase().includes('today') || days === 0;
+
+      if (isToday) todayCount++;
+      if (isExp) expiredCount++;
+      if (!isExp && days >= 0 && days <= 7) next7Count++;
+      if (!isExp && days >= 0 && days <= 30) next30Count++;
+
+      const d = (c.doc || '').toLowerCase();
+      let keyPrefix = '';
+      if (d.includes('insurance')) keyPrefix = 'insurance';
+      else if (d.includes('fitness')) keyPrefix = 'fitness';
+      else if (d.includes('puc')) keyPrefix = 'puc';
+      else if (d.includes('new driving') || d.includes('new licence') || d.includes('new license')) keyPrefix = 'newLicence';
+      else if (d.includes('renewal')) keyPrefix = 'renewalLicence';
+      else if (d.includes('rc transfer') || d.includes('transfer')) keyPrefix = 'rcTransfer';
+      else if (d.includes('vehicle passing') || d.includes('passing')) keyPrefix = 'vehiclePassing';
+
+      if (keyPrefix) {
+        if (isExp) docCounts[keyPrefix + 'Expired'] = (docCounts[keyPrefix + 'Expired'] || 0) + 1;
+        else docCounts[keyPrefix + 'Expiring'] = (docCounts[keyPrefix + 'Expiring'] || 0) + 1;
+      }
+    });
+
+    if (!this.editMode) {
+      this.data.metrics = {
+        totalCustomers: String(list.length),
+        totalCustomersSub: `${list.length} this month`,
+        todayFollowups: String(todayCount),
+        expiredDocs: String(expiredCount),
+        next7Days: String(next7Count),
+        next30Days: String(next30Count)
+      };
+      this.data.docStatus = { ...docCounts };
+    }
   }
 
   getStatusBadgeClass(status) {
@@ -2025,6 +1970,10 @@ class AutoCareCRM {
   renderNext7DaysFullTable() {
     this.next7DaysFullTableBody.innerHTML = '';
     const sortedList = this.sortByExpiryDays(this.data.next7DaysList || []);
+    if (!sortedList || sortedList.length === 0) {
+      this.next7DaysFullTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 24px; color: #94a3b8;">No documents expiring in the next 7 days</td></tr>`;
+      return;
+    }
     sortedList.forEach((item, index) => {
       const tr = document.createElement('tr');
       const vBadge = this.getVehicleBadgeHtml(item.vehicleType);
@@ -2052,6 +2001,10 @@ class AutoCareCRM {
   renderExpiredDocsFullTable() {
     this.expiredDocsFullTableBody.innerHTML = '';
     const sortedList = (this.data.expiredDocsList || []).slice().sort((a, b) => this.getDaysRemainingNumber(a) - this.getDaysRemainingNumber(b));
+    if (!sortedList || sortedList.length === 0) {
+      this.expiredDocsFullTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 24px; color: #94a3b8;">No expired documents found</td></tr>`;
+      return;
+    }
     sortedList.forEach((item, index) => {
       const tr = document.createElement('tr');
       const vBadge = this.getVehicleBadgeHtml(item.vehicleType);
@@ -2077,6 +2030,10 @@ class AutoCareCRM {
   // --- Render Reminders Full List ---
   renderRemindersFullList() {
     this.remindersFullList.innerHTML = '';
+    if (!this.data.activities || this.data.activities.length === 0) {
+      this.remindersFullList.innerHTML = `<div style="text-align:center; padding: 24px; color: #94a3b8;">No reminders log found</div>`;
+      return;
+    }
     this.data.activities.forEach(act => {
       const div = document.createElement('div');
       div.className = 'activity-item';
@@ -2107,10 +2064,10 @@ class AutoCareCRM {
       else fourWCount++;
     });
 
-    const total = allList.length || 1;
-    const p2W = Math.round((twoWCount / total) * 100);
-    const p4W = Math.round((fourWCount / total) * 100);
-    const pComm = 100 - p2W - p4W;
+    const total = allList.length;
+    const p2W = total > 0 ? Math.round((twoWCount / total) * 100) : 0;
+    const p4W = total > 0 ? Math.round((fourWCount / total) * 100) : 0;
+    const pComm = total > 0 ? (100 - p2W - p4W) : 0;
 
     const stat2WCount = document.getElementById('stat2WCount');
     const stat4WCount = document.getElementById('stat4WCount');
@@ -2165,6 +2122,10 @@ class AutoCareCRM {
   // --- Render Activities Full Timeline ---
   renderActivitiesFullList() {
     this.activitiesFullList.innerHTML = '';
+    if (!this.data.activities || this.data.activities.length === 0) {
+      this.activitiesFullList.innerHTML = `<div style="text-align:center; padding: 24px; color: #94a3b8;">No recent activities recorded yet</div>`;
+      return;
+    }
     this.data.activities.forEach(act => {
       const div = document.createElement('div');
       div.className = 'activity-item';
@@ -2244,6 +2205,10 @@ class AutoCareCRM {
   renderNext7DaysList() {
     this.next7DaysTableBody.innerHTML = '';
     const sortedList = this.sortByExpiryDays(this.data.next7DaysList || []);
+    if (!sortedList || sortedList.length === 0) {
+      this.next7DaysTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 18px; color: #94a3b8; font-size: 12.5px;">No documents expiring in next 7 days</td></tr>`;
+      return;
+    }
     sortedList.forEach(item => {
       const tr = document.createElement('tr');
       const vBadge = this.getVehicleBadgeHtml(item.vehicleType);
@@ -2265,6 +2230,10 @@ class AutoCareCRM {
   renderExpiredDocsList() {
     this.expiredDocsTableBody.innerHTML = '';
     const sortedList = (this.data.expiredDocsList || []).slice().sort((a, b) => this.getDaysRemainingNumber(a) - this.getDaysRemainingNumber(b));
+    if (!sortedList || sortedList.length === 0) {
+      this.expiredDocsTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 18px; color: #94a3b8; font-size: 12.5px;">No expired documents</td></tr>`;
+      return;
+    }
     sortedList.forEach(item => {
       const tr = document.createElement('tr');
       const vBadge = this.getVehicleBadgeHtml(item.vehicleType);
@@ -2284,6 +2253,10 @@ class AutoCareCRM {
 
   renderActivities() {
     this.recentActivitiesList.innerHTML = '';
+    if (!this.data.activities || this.data.activities.length === 0) {
+      this.recentActivitiesList.innerHTML = `<div style="text-align:center; padding: 20px; color: #94a3b8; font-size: 12.5px;">No recent activities yet</div>`;
+      return;
+    }
     this.data.activities.forEach(act => {
       const div = document.createElement('div');
       div.className = 'activity-item';

@@ -55,25 +55,13 @@
         </button>
       </form>
 
-      <!-- Quick 1-Click Demo Login Chips for testing -->
+      <!-- Quick 1-Click Login for Admin -->
       <div class="login-quick-demo">
-        <div class="login-demo-title" data-i18n="quickLoginTitle">⚡ Quick Test Logins / ઝડપી લૉગિન:</div>
-        <div class="demo-chips-grid">
-          <button type="button" class="demo-chip-btn" data-demo-user="admin" data-demo-pass="admin123">
-            <span>👑 Admin Master</span>
+        <div class="login-demo-title" data-i18n="quickLoginTitle">⚡ Quick Login / ઝડપી લૉગિન:</div>
+        <div class="demo-chips-grid" style="grid-template-columns: 1fr;">
+          <button type="button" class="demo-chip-btn" data-demo-user="admin" data-demo-pass="admin123" style="justify-content: space-between;">
+            <span>👑 Admin (admin / admin123)</span>
             <span class="demo-chip-role">Master</span>
-          </button>
-          <button type="button" class="demo-chip-btn" data-demo-user="kavita" data-demo-pass="1234">
-            <span>📞 Kavita</span>
-            <span class="demo-chip-role">Telecaller</span>
-          </button>
-          <button type="button" class="demo-chip-btn" data-demo-user="hitesh" data-demo-pass="1234">
-            <span>📞 Hitesh</span>
-            <span class="demo-chip-role">Telecaller</span>
-          </button>
-          <button type="button" class="demo-chip-btn" data-demo-user="mayur" data-demo-pass="1234">
-            <span>👔 Mayur</span>
-            <span class="demo-chip-role">Manager</span>
           </button>
         </div>
       </div>
@@ -235,15 +223,15 @@
           <!-- Staff & Employee Switcher Pill -->
           <div class="employee-switch-pill" id="btnOpenEmployeeModal" title="Manage Staff & Switch Active Profile / કર્મચારી પ્રોફાઇલ">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            <span id="activeEmpNavName">Sabir Ajmeri (Admin)</span>
+            <span id="activeEmpNavName">Momai Admin (Admin)</span>
             <span style="font-size: 10px; opacity: 0.7;">▾</span>
           </div>
 
           <!-- User Profile Badge -->
           <div class="user-profile-badge" id="userProfileBadge" title="Click to view & edit Staff Profiles">
-            <div class="user-avatar" id="adminInitials">SA</div>
+            <div class="user-avatar" id="adminInitials">MA</div>
             <div class="user-info">
-              <span class="user-name" id="adminName">Sabir Ajmeri</span>
+              <span class="user-name" id="adminName">Momai Admin</span>
               <span class="user-role" id="adminRole">Admin</span>
             </div>
           </div>
@@ -266,7 +254,7 @@
           <!-- Welcome Banner -->
           <div class="welcome-banner">
             <div class="welcome-text-group">
-              <h1 id="welcomeHeading">Welcome Back, Sabir!</h1>
+              <h1 id="welcomeHeading">Welcome Back, Admin!</h1>
               <p class="welcome-subtitle" data-i18n="welcomeSubtitle">Here's your business update for today.</p>
             </div>
             <div class="welcome-banner-right">
@@ -290,10 +278,10 @@
               </div>
               <div class="metric-body">
                 <span class="metric-title" data-i18n="metricTotalCustomers">Total Customers</span>
-                <div class="metric-value" id="valTotalCustomers">1,248</div>
+                <div class="metric-value" id="valTotalCustomers">0</div>
                 <div class="metric-footer">
-                  <span class="trend-badge">↑ 12%</span>
-                  <span class="trend-sub" id="subTotalCustomers">+28 this month</span>
+                  <span class="trend-badge">↑ 0%</span>
+                  <span class="trend-sub" id="subTotalCustomers">0 this month</span>
                 </div>
               </div>
             </div>
@@ -305,7 +293,7 @@
               </div>
               <div class="metric-body">
                 <span class="metric-title" data-i18n="metricTodayFollowups">Today's Follow-ups</span>
-                <div class="metric-value" id="valTodayFollowups">26</div>
+                <div class="metric-value" id="valTodayFollowups">0</div>
                 <div class="metric-footer">
                   <a class="metric-link" data-view-trigger="followups" data-i18n="viewList">View List →</a>
                 </div>
@@ -319,7 +307,7 @@
               </div>
               <div class="metric-body">
                 <span class="metric-title" data-i18n="metricExpiredDocs">Expired Documents</span>
-                <div class="metric-value" id="valExpiredDocs">14</div>
+                <div class="metric-value" id="valExpiredDocs">0</div>
                 <div class="metric-footer">
                   <a class="metric-link" data-view-trigger="expired-docs" data-i18n="actionRequired">Action Required →</a>
                 </div>
@@ -333,7 +321,7 @@
               </div>
               <div class="metric-body">
                 <span class="metric-title" data-i18n="metricNext7Days">Next 7 Days Expiry</span>
-                <div class="metric-value" id="valNext7Days">38</div>
+                <div class="metric-value" id="valNext7Days">0</div>
                 <div class="metric-footer">
                   <a class="metric-link" data-view-trigger="next-7-days" data-i18n="viewList">View List →</a>
                 </div>
@@ -347,7 +335,7 @@
               </div>
               <div class="metric-body">
                 <span class="metric-title" data-i18n="metricNext30Days">Next 30 Days Expiry</span>
-                <div class="metric-value" id="valNext30Days">112</div>
+                <div class="metric-value" id="valNext30Days">0</div>
                 <div class="metric-footer">
                   <a class="metric-link" data-view-trigger="customers" data-i18n="viewList">View List →</a>
                 </div>
@@ -390,7 +378,7 @@
                     </div>
                     <h2 class="card-title">
                       <span data-i18n="callingListTitle">Today's Calling List</span>
-                      <span id="callingListCount" style="font-weight: 500; font-size: 14px; color: #64748b;">(26 Customers)</span>
+                      <span id="callingListCount" style="font-weight: 500; font-size: 14px; color: #64748b;">(0 Customers)</span>
                     </h2>
                   </div>
                   <div class="card-header-actions">
@@ -441,7 +429,7 @@
                       </div>
                       <h3 class="card-title">
                         <span data-i18n="next7DaysTitle">Next 7 Days Expiry</span>
-                        <span id="next7DaysCount" style="font-weight: 500; font-size: 13.5px; color: #64748b;">(38)</span>
+                        <span id="next7DaysCount" style="font-weight: 500; font-size: 13.5px; color: #64748b;">(0)</span>
                       </h3>
                     </div>
                     <a class="card-header-link" data-view-trigger="next-7-days" data-i18n="viewAll">View All →</a>
@@ -474,7 +462,7 @@
                       </div>
                       <h3 class="card-title">
                         <span data-i18n="expiredDocsTitle">Expired Documents</span>
-                        <span id="expiredDocsCount" style="font-weight: 500; font-size: 13.5px; color: #dc2626;">(14)</span>
+                        <span id="expiredDocsCount" style="font-weight: 500; font-size: 13.5px; color: #dc2626;">(0)</span>
                       </h3>
                     </div>
                     <a class="card-header-link" data-view-trigger="expired-docs" data-i18n="viewAll">View All →</a>
@@ -522,8 +510,8 @@
                     </div>
                     <div class="doc-status-right">
                       <div class="doc-status-counts">
-                        <span class="count-expiring" id="countInsuranceExpiring">48 Expiring</span>
-                        <span class="count-expired" id="countInsuranceExpired">12 Expired</span>
+                        <span class="count-expiring" id="countInsuranceExpiring">0 Expiring</span>
+                        <span class="count-expired" id="countInsuranceExpired">0 Expired</span>
                       </div>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
                     </div>
@@ -539,8 +527,8 @@
                     </div>
                     <div class="doc-status-right">
                       <div class="doc-status-counts">
-                        <span class="count-expiring" id="countFitnessExpiring" style="color: #10b981;">28 Expiring</span>
-                        <span class="count-expired" id="countFitnessExpired">6 Expired</span>
+                        <span class="count-expiring" id="countFitnessExpiring" style="color: #10b981;">0 Expiring</span>
+                        <span class="count-expired" id="countFitnessExpired">0 Expired</span>
                       </div>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
                     </div>
@@ -556,8 +544,8 @@
                     </div>
                     <div class="doc-status-right">
                       <div class="doc-status-counts">
-                        <span class="count-expiring" id="countPucExpiring" style="color: #9333ea;">36 Expiring</span>
-                        <span class="count-expired" id="countPucExpired">18 Expired</span>
+                        <span class="count-expiring" id="countPucExpiring" style="color: #9333ea;">0 Expiring</span>
+                        <span class="count-expired" id="countPucExpired">0 Expired</span>
                       </div>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
                     </div>
@@ -573,8 +561,8 @@
                     </div>
                     <div class="doc-status-right">
                       <div class="doc-status-counts">
-                        <span class="count-expiring" id="countNewLicenceExpiring" style="color: #d97706;">14 Active</span>
-                        <span class="count-expired" id="countNewLicenceExpired">2 Expired</span>
+                        <span class="count-expiring" id="countNewLicenceExpiring" style="color: #d97706;">0 Active</span>
+                        <span class="count-expired" id="countNewLicenceExpired">0 Expired</span>
                       </div>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
                     </div>
@@ -590,8 +578,8 @@
                     </div>
                     <div class="doc-status-right">
                       <div class="doc-status-counts">
-                        <span class="count-expiring" id="countRenewalLicenceExpiring" style="color: #ea580c;">22 Expiring</span>
-                        <span class="count-expired" id="countRenewalLicenceExpired">4 Expired</span>
+                        <span class="count-expiring" id="countRenewalLicenceExpiring" style="color: #ea580c;">0 Expiring</span>
+                        <span class="count-expired" id="countRenewalLicenceExpired">0 Expired</span>
                       </div>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
                     </div>
@@ -607,8 +595,8 @@
                     </div>
                     <div class="doc-status-right">
                       <div class="doc-status-counts">
-                        <span class="count-expiring" id="countRcTransferExpiring" style="color: #4f46e5;">18 In Progress</span>
-                        <span class="count-expired" id="countRcTransferExpired">3 Pending</span>
+                        <span class="count-expiring" id="countRcTransferExpiring" style="color: #4f46e5;">0 In Progress</span>
+                        <span class="count-expired" id="countRcTransferExpired">0 Pending</span>
                       </div>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
                     </div>
@@ -624,8 +612,8 @@
                     </div>
                     <div class="doc-status-right">
                       <div class="doc-status-counts">
-                        <span class="count-expiring" id="countVehiclePassingExpiring" style="color: #0d9488;">16 Expiring</span>
-                        <span class="count-expired" id="countVehiclePassingExpired">5 Expired</span>
+                        <span class="count-expiring" id="countVehiclePassingExpiring" style="color: #0d9488;">0 Expiring</span>
+                        <span class="count-expired" id="countVehiclePassingExpired">0 Expired</span>
                       </div>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
                     </div>
@@ -665,7 +653,7 @@
               <div class="view-title-wrap">
                 <h2 class="view-main-title">
                   <span>👥</span> <span data-i18n="navCustomers">Customers</span>
-                  <span id="custTotalCountBadge" style="font-size: 14px; font-weight: 600; color: #64748b;">(1,248)</span>
+                  <span id="custTotalCountBadge" style="font-size: 14px; font-weight: 600; color: #64748b;">(0)</span>
                 </h2>
                 <p class="view-subtitle" data-i18n="customersViewSubtitle">Manage your full vehicle and customer database with Two-Wheeler / Four-Wheeler filters.</p>
               </div>
