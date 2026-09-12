@@ -530,30 +530,33 @@ class AutoCareCRM {
       const localListCount = (this.data && this.data.callingList) ? this.data.callingList.length : 0;
 
       // Case A: Cloud has data and local is newer or empty or different -> Pull from Cloud
-      if (serverPayload && serverPayload.callingList && Array.isArray(serverPayload.callingList)) {
+      if (serverPayload && (Array.isArray(serverPayload.callingList) || Array.isArray(serverPayload.employees))) {
+        if (!serverPayload.callingList) serverPayload.callingList = [];
+        if (!serverPayload.employees) serverPayload.employees = JSON.parse(JSON.stringify(DEFAULT_DATA.employees));
+
         const cloudCount = serverPayload.callingList.length;
         const isNewer = cloudVer && (!this.localDataVersion || cloudVer > this.localDataVersion);
         const isLocalEmpty = localListCount === 0 && cloudCount > 0;
         const isCallingDiff = JSON.stringify(serverPayload.callingList) !== JSON.stringify(this.data.callingList || []);
         const isEmpDiff = JSON.stringify(serverPayload.employees || []) !== JSON.stringify(this.data.employees || []);
+        const currentSavedAdminPass = localStorage.getItem('momai_crm_admin_pass');
+        const adminEmp = serverPayload.employees.find(e => e.role === 'Admin' || e.username === 'admin');
+        const isAdminPassDiff = Boolean(adminEmp && adminEmp.password && currentSavedAdminPass && adminEmp.password !== currentSavedAdminPass);
 
-        if (isNewer || isLocalEmpty || isCallingDiff || isEmpDiff || options.force) {
+        if (isNewer || isLocalEmpty || isCallingDiff || isEmpDiff || isAdminPassDiff || options.force) {
           if (cloudVer) this.localDataVersion = cloudVer;
-
-          const activeEl = document.activeElement;
-          const isUserTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
 
           this.data = serverPayload;
           localStorage.setItem('momai_crm_data_v2', JSON.stringify(serverPayload));
           if (cloudVer) localStorage.setItem('momai_crm_version', String(cloudVer));
 
           // Sync Admin password locally if updated in Cloud
-          if (serverPayload.employees && Array.isArray(serverPayload.employees)) {
-            const adminEmp = serverPayload.employees.find(e => e.role === 'Admin' || e.username === 'admin');
-            if (adminEmp && adminEmp.password) {
-              localStorage.setItem('momai_crm_admin_pass', adminEmp.password);
-            }
+          if (adminEmp && adminEmp.password) {
+            localStorage.setItem('momai_crm_admin_pass', adminEmp.password);
           }
+
+          const activeEl = document.activeElement;
+          const isUserTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
 
           if (!isUserTyping || options.force) {
             this.render();
@@ -1201,6 +1204,13 @@ class AutoCareCRM {
     if (btnSendWaModal) {
       btnSendWaModal.addEventListener('click', () => {
         this.sendWhatsAppFromModal('web');
+      });
+    }
+
+    const btnSendWaAppModal = document.getElementById('btnSendWaAppModal');
+    if (btnSendWaAppModal) {
+      btnSendWaAppModal.addEventListener('click', () => {
+        this.sendWhatsAppFromModal('app');
       });
     }
 
@@ -2471,13 +2481,27 @@ class AutoCareCRM {
 
   triggerWhatsAppDispatch(standardPhone, text, mode = 'web') {
     const encoded = encodeURIComponent(text);
-    // Auto-copy message to clipboard so user can also paste in any tab with Ctrl+V if needed
+    // Auto-copy message to clipboard so user can also paste anywhere with Ctrl+V if needed
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).catch(() => {});
     }
-    // Directly target WhatsApp Web window to prevent Windows desktop app from opening and reuse existing Web tab
-    const waWebUrl = `https://web.whatsapp.com/send?phone=${standardPhone}&text=${encoded}`;
-    window.open(waWebUrl, 'MomaiWhatsAppWindow');
+
+    if (mode === 'app') {
+      // Direct Windows Desktop WhatsApp App Protocol (zero browser tabs!)
+      const appUrl = `whatsapp://send?phone=${standardPhone}&text=${encoded}`;
+      const link = document.createElement('a');
+      link.href = appUrl;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        if (link.parentNode) link.parentNode.removeChild(link);
+      }, 400);
+    } else {
+      // Direct WhatsApp Web (reusing same tab 'MomaiWhatsAppWindow')
+      const waWebUrl = `https://web.whatsapp.com/send?phone=${standardPhone}&text=${encoded}`;
+      window.open(waWebUrl, 'MomaiWhatsAppWindow');
+    }
   }
 
   openWhatsAppForCustomer(customer, mode = 'web') {
@@ -3190,7 +3214,7 @@ class AutoCareCRM {
     return true;
   }
 
-  handleLoginSubmit() {
+  async handleLoginSubmit() {
     const username = (this.loginUsername ? this.loginUsername.value : '').trim().toLowerCase();
     const password = (this.loginPassword ? this.loginPassword.value : '').trim();
 
@@ -3199,15 +3223,49 @@ class AutoCareCRM {
       return;
     }
 
+    // Always fetch latest cloud state on login attempt to ensure cross-browser password & dataset sync
+    try {
+      await this.syncCloudData({ force: true });
+    } catch (e) {}
+
     const savedAdminPass = localStorage.getItem('momai_crm_admin_pass');
 
-    const employee = (this.data.employees || []).find(e => {
+    let employee = (this.data.employees || []).find(e => {
       const uMatch = e.username && e.username.toLowerCase() === username;
       if (!uMatch) return false;
       if (e.password === password) return true;
       if ((e.role === 'Admin' || username === 'admin') && savedAdminPass && savedAdminPass === password) return true;
       return false;
     });
+
+    // If still not matched locally, make a direct live fetch to Firebase Realtime DB
+    if (!employee) {
+      try {
+        const res = await fetch('https://momaienterprise-crm-live-default-rtdb.firebaseio.com/crm_database.json?t=' + Date.now(), { cache: 'no-store' });
+        if (res.ok) {
+          const raw = await res.json();
+          const cloudData = (raw && raw.data) ? raw.data : raw;
+          if (cloudData && cloudData.employees) {
+            this.data = cloudData;
+            localStorage.setItem('momai_crm_data_v2', JSON.stringify(cloudData));
+            if (raw.version) localStorage.setItem('momai_crm_version', String(raw.version));
+
+            const adminEmp = cloudData.employees.find(e => e.role === 'Admin' || e.username === 'admin');
+            if (adminEmp && adminEmp.password) {
+              localStorage.setItem('momai_crm_admin_pass', adminEmp.password);
+            }
+
+            employee = (this.data.employees || []).find(e => {
+              const uMatch = e.username && e.username.toLowerCase() === username;
+              if (!uMatch) return false;
+              if (e.password === password) return true;
+              if ((e.role === 'Admin' || username === 'admin') && adminEmp && adminEmp.password === password) return true;
+              return false;
+            });
+          }
+        }
+      } catch (err) {}
+    }
 
     if (employee) {
       if (this.loginErrorMsg) this.loginErrorMsg.style.display = 'none';
