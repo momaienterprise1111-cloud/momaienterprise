@@ -1775,32 +1775,37 @@
       <div class="modal-body" style="padding: 22px;">
         <!-- Step 1: Identifier Input -->
         <div id="forgotStep1">
-          <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin-bottom: 16px;" data-i18n="forgotStep1Desc">
-            Enter your Admin User ID or registered Email ID. A 6-digit verification code will be sent to your email to securely reset your password.
-          </p>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 13px; color: #475569; line-height: 1.5;">
+            ✉️ Password reset link and verification code will be sent to registered Admin email: <strong style="color: #0f172a;">momaienterprise1111@gmail.com</strong>
+          </div>
           <div class="form-group" style="margin-bottom: 16px;">
             <label class="form-label" for="forgotIdentifier" data-i18n="forgotIdentifierLabel" style="font-weight: 700;">User ID or Email / વપરાશકર્તા ID અથવા ઇમેઇલ</label>
             <div class="login-input-wrap" style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px; display: flex; align-items: center; padding: 0 12px;">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#64748b" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              <input type="text" id="forgotIdentifier" class="login-input" placeholder="e.g. admin or sabir@momai.com" style="border: none; background: transparent; padding: 12px 10px; width: 100%; font-size: 14px;" required>
+              <input type="text" id="forgotIdentifier" class="login-input" value="admin" placeholder="e.g. admin or momaienterprise1111@gmail.com" style="border: none; background: transparent; padding: 12px 10px; width: 100%; font-size: 14px;" required>
             </div>
           </div>
           <button type="button" class="btn-primary" id="btnSendOtp" style="width: 100%; padding: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; background: #4f46e5; border-color: #4338ca;">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            <span data-i18n="btnSendOtpText">Send Verification Code to Email</span>
+            <span data-i18n="btnSendOtpText">Send Password Reset Link to Email</span>
           </button>
         </div>
 
         <!-- Step 2: OTP & New Password -->
         <div id="forgotStep2" style="display: none;">
-          <div id="forgotOtpSentNotice" style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; color: #1e40af; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
-            <span>✉️</span> <span>Code sent to: <strong id="forgotSentEmail" style="color: #1d4ed8;"></strong></span>
-          </div>
-          <div id="forgotDemoOtpAlert" style="display: none; background: #fefce8; border: 1px solid #fef08a; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; color: #854d0e; margin-bottom: 14px;">
-            ⚡ <strong>Instant Test Code:</strong> <span id="forgotDemoOtpVal" style="font-size: 16px; font-weight: 800; letter-spacing: 2px; color: #a16207;"></span>
+          <div id="forgotOtpSentNotice" style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; padding: 14px 16px; font-size: 13px; color: #166534; margin-bottom: 16px; line-height: 1.5;">
+            <div style="font-weight: 800; font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+              <span>✉️</span> <span>Password Reset Mail Sent!</span>
+            </div>
+            <div>
+              Password reset link & code have been sent to: <strong id="forgotSentEmail" style="color: #14532d; font-weight: 800;">momaienterprise1111@gmail.com</strong>
+            </div>
+            <div style="font-size: 12px; color: #15803d; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #bbf7d0;">
+              💡 <strong>Check your Gmail inbox</strong> to click the direct link or enter the 6-digit code below to set your new password.
+            </div>
           </div>
           <div class="form-group" style="margin-bottom: 14px;">
-            <label class="form-label" for="forgotOtpInput" data-i18n="forgotOtpLabel" style="font-weight: 700;">Enter 6-Digit Code / 6-અંકનો કોડ</label>
+            <label class="form-label" for="forgotOtpInput" data-i18n="forgotOtpLabel" style="font-weight: 700;">6-Digit Verification Code / 6-અંકનો કોડ</label>
             <input type="text" id="forgotOtpInput" class="form-input text-center" maxlength="6" placeholder="• • • • • •" style="letter-spacing: 6px; font-size: 22px; font-weight: 800; text-align: center; color: #4f46e5; background: #f8fafc;" required>
           </div>
           <div class="form-group" style="margin-bottom: 14px;">
@@ -1822,7 +1827,7 @@
             <span data-i18n="btnResetPassText">Change Password & Sign In</span>
           </button>
           <div style="text-align: center; margin-top: 14px;">
-            <a href="javascript:void(0)" id="btnResendOtp" style="font-size: 12px; color: #4f46e5; text-decoration: underline; font-weight: 600;">Resend Code / ફરીથી મોકલો</a>
+            <a href="javascript:void(0)" id="btnResendOtp" style="font-size: 12px; color: #4f46e5; text-decoration: underline; font-weight: 600;">Resend Link & Code / ફરીથી મોકલો</a>
           </div>
         </div>
 
