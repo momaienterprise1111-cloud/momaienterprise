@@ -1200,7 +1200,7 @@ class AutoCareCRM {
     const btnSendWaModal = document.getElementById('btnSendWaModal');
     if (btnSendWaModal) {
       btnSendWaModal.addEventListener('click', () => {
-        this.sendWhatsAppFromModal('app');
+        this.sendWhatsAppFromModal('web');
       });
     }
 
@@ -1691,10 +1691,12 @@ class AutoCareCRM {
     const filteredCalling = this.getFilteredCallingList();
     const callingListCountEl = document.getElementById('callingListCount');
     if (callingListCountEl) callingListCountEl.textContent = `(${filteredCalling.length} ${this.t('navCustomers')})`;
+    const next7Items = this.getNext7DaysList();
+    const expiredItems = this.getExpiredDocsList();
     const next7DaysCountEl = document.getElementById('next7DaysCount');
-    if (next7DaysCountEl) next7DaysCountEl.textContent = `(${this.data.next7DaysList ? this.data.next7DaysList.length : 0})`;
+    if (next7DaysCountEl) next7DaysCountEl.textContent = `(${next7Items.length})`;
     const expiredDocsCountEl = document.getElementById('expiredDocsCount');
-    if (expiredDocsCountEl) expiredDocsCountEl.textContent = `(${this.data.expiredDocsList ? this.data.expiredDocsList.length : 0})`;
+    if (expiredDocsCountEl) expiredDocsCountEl.textContent = `(${expiredItems.length})`;
     const custTotalCountBadgeEl = document.getElementById('custTotalCountBadge');
     if (custTotalCountBadgeEl) custTotalCountBadgeEl.textContent = `(${filteredCalling.length})`;
 
@@ -2044,10 +2046,33 @@ class AutoCareCRM {
     });
   }
 
+  getNext7DaysList(customList = null) {
+    const list = customList !== null ? customList : this.getFilteredCallingList();
+    return list.filter(c => {
+      const days = this.getDaysRemainingNumber(c);
+      const isExp = (c.status || '').toLowerCase().includes('expired') || (c.daysLeft || '').toLowerCase().includes('expired') || days < 0;
+      return !isExp && days >= 0 && days <= 7;
+    }).map(c => ({
+      ...c,
+      days: c.daysLeft ? (c.daysLeft.replace(/[^0-9]/g, '') || String(Math.max(0, this.getDaysRemainingNumber(c)))) : String(Math.max(0, this.getDaysRemainingNumber(c)))
+    }));
+  }
+
+  getExpiredDocsList(customList = null) {
+    const list = customList !== null ? customList : this.getFilteredCallingList();
+    return list.filter(c => {
+      const days = this.getDaysRemainingNumber(c);
+      return (c.status || '').toLowerCase().includes('expired') || (c.daysLeft || '').toLowerCase().includes('expired') || days < 0;
+    }).map(c => ({
+      ...c,
+      expiredOn: c.expiry || c.expiredOn || 'Expired'
+    }));
+  }
+
   // --- Render Next 7 Days Full View Table ---
   renderNext7DaysFullTable() {
     this.next7DaysFullTableBody.innerHTML = '';
-    const sortedList = this.sortByExpiryDays(this.data.next7DaysList || []);
+    const sortedList = this.sortByExpiryDays(this.getNext7DaysList());
     if (!sortedList || sortedList.length === 0) {
       this.next7DaysFullTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 24px; color: #94a3b8;">No documents expiring in the next 7 days</td></tr>`;
       return;
@@ -2078,7 +2103,7 @@ class AutoCareCRM {
   // --- Render Expired Docs Full View Table ---
   renderExpiredDocsFullTable() {
     this.expiredDocsFullTableBody.innerHTML = '';
-    const sortedList = (this.data.expiredDocsList || []).slice().sort((a, b) => this.getDaysRemainingNumber(a) - this.getDaysRemainingNumber(b));
+    const sortedList = this.getExpiredDocsList().slice().sort((a, b) => this.getDaysRemainingNumber(a) - this.getDaysRemainingNumber(b));
     if (!sortedList || sortedList.length === 0) {
       this.expiredDocsFullTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 24px; color: #94a3b8;">No expired documents found</td></tr>`;
       return;
@@ -2134,7 +2159,7 @@ class AutoCareCRM {
     let fourWCount = 0;
     let commCount = 0;
 
-    const allList = [...this.data.callingList, ...this.data.next7DaysList, ...this.data.expiredDocsList];
+    const allList = this.getFilteredCallingList();
     allList.forEach(c => {
       const type = (c.vehicleType || '').toLowerCase();
       if (type.includes('2') || type.includes('two')) twoWCount++;
@@ -2280,9 +2305,10 @@ class AutoCareCRM {
     });
   }
 
-  renderNext7DaysList() {
+  renderNext7DaysList(customList = null) {
     this.next7DaysTableBody.innerHTML = '';
-    const sortedList = this.sortByExpiryDays(this.data.next7DaysList || []);
+    const items = this.getNext7DaysList(customList);
+    const sortedList = this.sortByExpiryDays(items);
     if (!sortedList || sortedList.length === 0) {
       this.next7DaysTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 18px; color: #94a3b8; font-size: 12.5px;">No documents expiring in next 7 days</td></tr>`;
       return;
@@ -2295,7 +2321,7 @@ class AutoCareCRM {
         <td>${vBadge}<span class="col-vehicle">${this.escapeHtml(item.vehicle)}</span></td>
         <td>${this.escapeHtml(this.getTranslatedDoc(item.doc))}</td>
         <td>${this.escapeHtml(item.expiry)}</td>
-        <td class="col-days-red" style="font-weight: 700;">${this.escapeHtml(item.days)}</td>
+        <td class="col-days-red" style="font-weight: 700;">${this.escapeHtml(item.days)} Days</td>
         <td class="chevron-cell" title="View details" data-id="${item.id}">›</td>
       `;
       tr.querySelector('.chevron-cell').addEventListener('click', () => {
@@ -2305,9 +2331,10 @@ class AutoCareCRM {
     });
   }
 
-  renderExpiredDocsList() {
+  renderExpiredDocsList(customList = null) {
     this.expiredDocsTableBody.innerHTML = '';
-    const sortedList = (this.data.expiredDocsList || []).slice().sort((a, b) => this.getDaysRemainingNumber(a) - this.getDaysRemainingNumber(b));
+    const items = this.getExpiredDocsList(customList);
+    const sortedList = items.slice().sort((a, b) => this.getDaysRemainingNumber(a) - this.getDaysRemainingNumber(b));
     if (!sortedList || sortedList.length === 0) {
       this.expiredDocsTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 18px; color: #94a3b8; font-size: 12.5px;">No expired documents</td></tr>`;
       return;
@@ -2442,26 +2469,14 @@ class AutoCareCRM {
     this.logActivity('call', `Opened call details for ${customer.name} (${customer.vehicleType || '4W'})`);
   }
 
-  triggerWhatsAppDispatch(standardPhone, text, mode = 'app') {
+  triggerWhatsAppDispatch(standardPhone, text, mode = 'web') {
     const encoded = encodeURIComponent(text);
-    if (mode === 'web') {
-      const waWebUrl = `https://web.whatsapp.com/send?phone=${standardPhone}&text=${encoded}`;
-      window.open(waWebUrl, 'MomaiWhatsAppWindow');
-    } else {
-      // 1. Direct App Protocol: opens directly in the active logged-in WhatsApp (Desktop/App) with zero new browser tabs!
-      const appUrl = `whatsapp://send?phone=${standardPhone}&text=${encoded}`;
-      const link = document.createElement('a');
-      link.href = appUrl;
-      link.style.display = 'none';
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => {
-        if (link.parentNode) link.parentNode.removeChild(link);
-      }, 400);
-    }
+    // Directly target WhatsApp Web window to prevent Windows desktop app from opening and reuse existing Web tab
+    const waWebUrl = `https://web.whatsapp.com/send?phone=${standardPhone}&text=${encoded}`;
+    window.open(waWebUrl, 'MomaiWhatsAppWindow');
   }
 
-  openWhatsAppForCustomer(customer, mode = 'app') {
+  openWhatsAppForCustomer(customer, mode = 'web') {
     const phone = customer.phone || '9825012345';
     const cleanPhone = phone.replace(/[^0-9]/g, '');
     const standardPhone = (cleanPhone.startsWith('91') && cleanPhone.length === 12) ? cleanPhone : ('91' + cleanPhone.slice(-10));
@@ -2481,7 +2496,7 @@ class AutoCareCRM {
     this.triggerWhatsAppDispatch(standardPhone, message, mode);
 
     this.logActivity('whatsapp', `WhatsApp sent to ${customer.name} (${customer.vehicleType || '4W'})`);
-    this.showToast(this.currentLang === 'gu' ? `વોટ્સએપ ઓપન થયું: ${customer.name}` : `Opening WhatsApp for ${customer.name}...`, 'success');
+    this.showToast(this.currentLang === 'gu' ? `વોટ્સએપ ઓપન થયું: ${customer.name}` : `Opening WhatsApp Web for ${customer.name}...`, 'success');
   }
 
   // --- Quick Remark Modal Handlers ---
@@ -2585,7 +2600,7 @@ class AutoCareCRM {
     }
   }
 
-  sendWhatsAppFromModal(mode = 'app') {
+  sendWhatsAppFromModal(mode = 'web') {
     const customer = this.activeWaCustomer;
     if (!customer) return;
     const textarea = document.getElementById('waMessageTextarea');
@@ -2599,7 +2614,7 @@ class AutoCareCRM {
     this.saveData();
     this.render();
     this.logActivity('whatsapp', `WhatsApp template dispatched to ${customer.name} (${customer.vehicle})`);
-    this.showToast(this.currentLang === 'gu' ? `વોટ્સએપ મોકલાયું: ${customer.name}!` : `WhatsApp dispatched to ${customer.name}!`, 'success');
+    this.showToast(this.currentLang === 'gu' ? `વોટ્સએપ મોકલાયું: ${customer.name}!` : `WhatsApp Web dispatched to ${customer.name}!`, 'success');
     this.closeModals();
   }
 
