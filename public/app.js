@@ -4473,7 +4473,16 @@ class AutoCareCRM {
   }
 }
 
-// Initialize on DOM load
-document.addEventListener('DOMContentLoaded', () => {
-  window.crm = new AutoCareCRM();
-});
+// Initialize on DOM load or immediately if ready
+function initMomaiCRM() {
+  if (!window.crm) {
+    window.crm = new AutoCareCRM();
+    window.app = window.crm;
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initMomaiCRM);
+} else {
+  initMomaiCRM();
+}
