@@ -525,6 +525,9 @@ class AutoCareCRM {
           }
           if (serverPayload.admin) {
             this.data.admin = serverPayload.admin;
+            if (!this.data.admin.phone || this.data.admin.phone.includes('94089')) {
+              this.data.admin.phone = '+91 99250 23570';
+            }
           }
 
           localStorage.setItem('momai_crm_data_v2', JSON.stringify(this.data));
@@ -666,7 +669,9 @@ class AutoCareCRM {
       try {
         const parsed = JSON.parse(saved);
         if (parsed.admin) {
-          parsed.admin.phone = '+91 99250 23570';
+          if (!parsed.admin.phone || parsed.admin.phone.includes('94089')) {
+            parsed.admin.phone = '+91 99250 23570';
+          }
         }
         if (!parsed.documentTypes || !Array.isArray(parsed.documentTypes) || parsed.documentTypes.length === 0) {
           parsed.documentTypes = JSON.parse(JSON.stringify(DEFAULT_DATA.documentTypes));
@@ -2482,12 +2487,13 @@ class AutoCareCRM {
     const days = customer.daysLeft || customer.days || 'Soon';
     const vType = (customer.vehicleType || '4-wheeler') === '2-wheeler' ? 'ટુ-વ્હીલર' : 'ફોર-વ્હીલર';
 
+    const adminPhone = (this.data.admin && this.data.admin.phone && !this.data.admin.phone.includes('94089')) ? this.data.admin.phone : '+91 99250 23570';
     let message = '';
     if (this.currentLang === 'gu') {
-      message = `નમસ્તે ${customer.name},\nતમારા ${vType} વાહન નંબર ${customer.vehicle} નું ${doc} તારીખ ${expiry} (${days}) ના રોજ સમાપ્ત થાય છે.\nદંડ અને મુશ્કેલીથી બચવા માટે આજે જ Momai Enterprise દ્વારા રિન્યુ કરાવો.\nસંપર્ક: ${this.data.admin.phone}\nઆભાર, Momai Enterprise.`;
+      message = `નમસ્તે ${customer.name},\nતમારા ${vType} વાહન નંબર ${customer.vehicle} નું ${doc} તારીખ ${expiry} (${days}) ના રોજ સમાપ્ત થાય છે.\nદંડ અને મુશ્કેલીથી બચવા માટે આજે જ Momai Enterprise દ્વારા રિન્યુ કરાવો.\nસંપર્ક: ${adminPhone}\nઆભાર, Momai Enterprise.`;
     } else {
       const vTypeEn = (customer.vehicleType || '4-wheeler') === '2-wheeler' ? 'Two-Wheeler' : 'Four-Wheeler';
-      message = `Dear ${customer.name},\nThis is a reminder that your ${vTypeEn} vehicle ${customer.vehicle} ${doc} is expiring on ${expiry} (${days}).\nPlease renew it promptly with Momai Enterprise to ensure hassle-free driving.\nContact: ${this.data.admin.phone}\nThank you, Momai Enterprise.`;
+      message = `Dear ${customer.name},\nThis is a reminder that your ${vTypeEn} vehicle ${customer.vehicle} ${doc} is expiring on ${expiry} (${days}).\nPlease renew it promptly with Momai Enterprise to ensure hassle-free driving.\nContact: ${adminPhone}\nThank you, Momai Enterprise.`;
     }
 
     this.triggerWhatsAppDispatch(standardPhone, message, mode);
@@ -2559,7 +2565,8 @@ class AutoCareCRM {
   renderWhatsAppTemplateText(tplType) {
     const customer = this.activeWaCustomer;
     if (!customer) return;
-    const phone = this.data.admin.phone || '+91 99250 23570';
+    let phone = (this.data.admin && this.data.admin.phone && !this.data.admin.phone.includes('94089')) ? this.data.admin.phone : '+91 99250 23570';
+    if (this.data.admin) this.data.admin.phone = phone;
     const doc = customer.doc || 'Insurance';
     const expiry = customer.expiry || 'Upcoming';
     const days = customer.daysLeft || 'Soon';
@@ -3770,11 +3777,12 @@ class AutoCareCRM {
     const previewBox = document.getElementById('bulkMsgPreview');
     const channel = document.getElementById('bulkChannel').value;
     const count = this.data.callingList.length;
+    const adminPhone = (this.data.admin && this.data.admin.phone && !this.data.admin.phone.includes('94089')) ? this.data.admin.phone : '+91 99250 23570';
 
     if (this.currentLang === 'gu') {
-      previewBox.value = `[Momai Enterprise ${channel.toUpperCase()} રિમાઇન્ડર]\nનમસ્તે [ગ્રાહકનું નામ],\nતમારા વાહન [વાહન નંબર] નું દસ્તાવેજ ટૂંક સમયમાં સમાપ્ત થાય છે.\nદંડથી બચવા માટે Momai Enterprise દ્વારા તરત જ રિન્યુ કરાવો.\nસંપર્ક: ${this.data.admin.phone}\n(કુલ ${count} ગ્રાહકોને મોકલવામાં આવશે)`;
+      previewBox.value = `[Momai Enterprise ${channel.toUpperCase()} રિમાઇન્ડર]\nનમસ્તે [ગ્રાહકનું નામ],\nતમારા વાહન [વાહન નંબર] નું દસ્તાવેજ ટૂંક સમયમાં સમાપ્ત થાય છે.\nદંડથી બચવા માટે Momai Enterprise દ્વારા તરત જ રિન્યુ કરાવો.\nસંપર્ક: ${adminPhone}\n(કુલ ${count} ગ્રાહકોને મોકલવામાં આવશે)`;
     } else {
-      previewBox.value = `[Momai Enterprise ${channel.toUpperCase()} Reminder]\nDear [Customer Name],\nYour vehicle [Vehicle No] document is expiring soon.\nPlease contact Momai Enterprise to renew it today and avoid traffic fines.\nContact: ${this.data.admin.phone}\n(Will be sent to ${count} customers)`;
+      previewBox.value = `[Momai Enterprise ${channel.toUpperCase()} Reminder]\nDear [Customer Name],\nYour vehicle [Vehicle No] document is expiring soon.\nPlease contact Momai Enterprise to renew it today and avoid traffic fines.\nContact: ${adminPhone}\n(Will be sent to ${count} customers)`;
     }
   }
 
