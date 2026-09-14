@@ -967,6 +967,12 @@ body {
   gap: 24px;
 }
 
+.header-date-filter-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .current-date-badge {
   display: flex;
   align-items: center;
@@ -974,6 +980,72 @@ body {
   font-size: 13px;
   color: #475569;
   font-weight: 500;
+}
+
+.current-date-badge.date-picker-trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  font-size: 13px;
+  color: #334155;
+  font-weight: 600;
+}
+
+.current-date-badge.date-picker-trigger:hover {
+  background: #f8fafc;
+  border-color: #0284c7;
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.18);
+  transform: translateY(-1px);
+}
+
+.current-date-badge.date-picker-trigger.active-filter {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.header-date-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.btn-clear-date-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1.5px solid #fca5a5;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(220, 38, 38, 0.1);
+}
+
+.btn-clear-date-filter:hover {
+  background: #fecaca;
+  border-color: #ef4444;
+  color: #991b1b;
+  transform: scale(1.04);
 }
 
 .current-date-badge svg {

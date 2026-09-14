@@ -257,7 +257,8 @@ const TRANSLATIONS = {
     btnResetPassText: 'Change Password & Sign In',
     forgotSuccessTitle: 'Password Reset Successfully!',
     forgotSuccessDesc: 'Your new password is now saved. Please log in with your updated password.',
-    editProfileModalTitle: 'Edit Staff Profile'
+    editProfileModalTitle: 'Edit Staff Profile',
+    clearFilter: 'Clear'
   },
   gu: {
     brandName: 'મોમાઈ એન્ટરપ્રાઈઝ',
@@ -446,7 +447,8 @@ const TRANSLATIONS = {
     btnResetPassText: 'પાસવર્ડ બદલો અને લૉગિન કરો',
     forgotSuccessTitle: 'પાસવર્ડ સફળતાપૂર્વક બદલાઈ ગયો છે!',
     forgotSuccessDesc: 'તમારો નવો પાસવર્ડ સક્રિય થઈ ગયો છે. હવે નવા પાસવર્ડથી લૉગિન કરો.',
-    editProfileModalTitle: 'કર્મચારી પ્રોફાઇલ સંપાદિત કરો'
+    editProfileModalTitle: 'કર્મચારી પ્રોફાઇલ સંપાદિત કરો',
+    clearFilter: 'હટાવો'
   }
 };
 
@@ -611,16 +613,12 @@ class AutoCareCRM {
 
     // 3. Instant sync & date refresh on tab focus or visibility change
     window.addEventListener('focus', () => {
-      if (this.currentDateDisplay) {
-        this.currentDateDisplay.textContent = this.getCurrentDateFormatted();
-      }
+      this.updateCurrentDateDisplay();
       this.syncCloudData({ force: false });
     });
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
-        if (this.currentDateDisplay) {
-          this.currentDateDisplay.textContent = this.getCurrentDateFormatted();
-        }
+        this.updateCurrentDateDisplay();
         this.syncCloudData({ force: false });
       }
     });
@@ -813,6 +811,10 @@ class AutoCareCRM {
     this.selectCustStatus = document.getElementById('selectCustStatus');
     this.calcHintText = document.getElementById('calcHintText');
     this.currentDateDisplay = document.getElementById('currentDateDisplay');
+    this.headerDateBadge = document.getElementById('headerDateBadge');
+    this.headerDateFilterInput = document.getElementById('headerDateFilterInput');
+    this.btnClearHeaderDateFilter = document.getElementById('btnClearHeaderDateFilter');
+    this.selectedCalendarDate = null;
 
     // Login, Logout & Master Staff Filter Elements
     this.btnSidebarStaffAccounts = document.getElementById('btnSidebarStaffAccounts');
@@ -854,6 +856,36 @@ class AutoCareCRM {
     this.langToggleBtn.addEventListener('click', () => {
       this.toggleLanguage();
     });
+
+    // Header Calendar Date Filter
+    if (this.headerDateFilterInput) {
+      this.headerDateFilterInput.addEventListener('change', (e) => {
+        this.handleHeaderDateFilter(e.target.value);
+      });
+    }
+
+    if (this.headerDateBadge) {
+      this.headerDateBadge.addEventListener('click', (e) => {
+        if (e.target !== this.headerDateFilterInput && this.headerDateFilterInput) {
+          try {
+            if (typeof this.headerDateFilterInput.showPicker === 'function') {
+              this.headerDateFilterInput.showPicker();
+            } else {
+              this.headerDateFilterInput.focus();
+            }
+          } catch (err) {
+            this.headerDateFilterInput.focus();
+          }
+        }
+      });
+    }
+
+    if (this.btnClearHeaderDateFilter) {
+      this.btnClearHeaderDateFilter.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.clearHeaderDateFilter();
+      });
+    }
 
     // Edit Mode Switch (safe check if present)
     if (this.editModeToggleBtn) {
@@ -1609,6 +1641,58 @@ class AutoCareCRM {
     }
   }
 
+  updateCurrentDateDisplay() {
+    if (!this.currentDateDisplay) return;
+    if (this.selectedCalendarDate) {
+      const isGu = this.currentLang === 'gu';
+      const formatted = this.formatInputToDisplay(this.selectedCalendarDate);
+      this.currentDateDisplay.textContent = isGu ? `📅 તારીખ: ${formatted}` : `📅 Date: ${formatted}`;
+      if (this.btnClearHeaderDateFilter) {
+        this.btnClearHeaderDateFilter.style.display = 'inline-flex';
+      }
+      if (this.headerDateBadge) {
+        this.headerDateBadge.classList.add('active-filter');
+      }
+    } else {
+      this.currentDateDisplay.textContent = this.getCurrentDateFormatted();
+      if (this.btnClearHeaderDateFilter) {
+        this.btnClearHeaderDateFilter.style.display = 'none';
+      }
+      if (this.headerDateBadge) {
+        this.headerDateBadge.classList.remove('active-filter');
+      }
+    }
+  }
+
+  handleHeaderDateFilter(dateStr) {
+    if (!dateStr) {
+      this.clearHeaderDateFilter();
+      return;
+    }
+    const [y, m, d] = dateStr.split('-').map(Number);
+    this.selectedCalendarDate = new Date(y, m - 1, d);
+    this.render();
+    const count = this.getFilteredCallingList().length;
+    const formatted = this.formatInputToDisplay(this.selectedCalendarDate);
+    const msg = this.currentLang === 'gu'
+      ? `📅 ${formatted} માટે ${count} રેકોર્ડ્સ મળ્યા`
+      : `📅 Found ${count} record(s) for ${formatted}`;
+    this.showToast(msg, 'info');
+  }
+
+  clearHeaderDateFilter() {
+    this.selectedCalendarDate = null;
+    if (this.headerDateFilterInput) {
+      this.headerDateFilterInput.value = '';
+    }
+    if (this.headerDateBadge) {
+      this.headerDateBadge.classList.remove('active-filter');
+    }
+    this.render();
+    const msg = this.currentLang === 'gu' ? 'બધા રેકોર્ડ્સ દર્શાવાયા છે' : 'Date filter cleared. Showing all records.';
+    this.showToast(msg, 'success');
+  }
+
   render() {
     // 1. Language pill update
     if (this.currentLang === 'gu') {
@@ -1629,10 +1713,8 @@ class AutoCareCRM {
     if (this.searchInput) this.searchInput.placeholder = this.t('searchPlaceholder');
     if (this.editModeText) this.editModeText.textContent = this.editMode ? this.t('editModeOn') : this.t('editModeOff');
 
-    // 3b. Update Live Current Date
-    if (this.currentDateDisplay) {
-      this.currentDateDisplay.textContent = this.getCurrentDateFormatted();
-    }
+    // 3b. Update Live Current Date / Calendar Filter
+    this.updateCurrentDateDisplay();
 
     // 4. Update Profile & Active Employee info
     const activeEmp = this.getActiveEmployee();
@@ -1967,6 +2049,21 @@ class AutoCareCRM {
   renderDocumentsTable(customList = null) {
     this.documentsTableBody.innerHTML = '';
     let list = customList !== null ? customList : (this.data.callingList || []);
+
+    // Header Calendar Date Filter
+    if (this.selectedCalendarDate) {
+      const selYear = this.selectedCalendarDate.getFullYear();
+      const selMonth = this.selectedCalendarDate.getMonth();
+      const selDate = this.selectedCalendarDate.getDate();
+
+      list = list.filter(c => {
+        const dObj = this.parseDateRobust(c.expiryRaw || c.expiry || c.expiredOn);
+        if (dObj) {
+          return dObj.getFullYear() === selYear && dObj.getMonth() === selMonth && dObj.getDate() === selDate;
+        }
+        return false;
+      });
+    }
 
     // Filter by Tab
     if (this.docActiveTab !== 'all') {
@@ -3605,6 +3702,22 @@ class AutoCareCRM {
       const myId = this.currentSession.empId;
       list = list.filter(c => c.assignedStaff === myId || c.createdById === myId);
     }
+
+    // Header Calendar Date Filter
+    if (this.selectedCalendarDate) {
+      const selYear = this.selectedCalendarDate.getFullYear();
+      const selMonth = this.selectedCalendarDate.getMonth();
+      const selDate = this.selectedCalendarDate.getDate();
+
+      list = list.filter(c => {
+        const dObj = this.parseDateRobust(c.expiryRaw || c.expiry || c.expiredOn);
+        if (dObj) {
+          return dObj.getFullYear() === selYear && dObj.getMonth() === selMonth && dObj.getDate() === selDate;
+        }
+        return false;
+      });
+    }
+
     return this.sortCallingList(list);
   }
 

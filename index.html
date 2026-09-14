@@ -256,9 +256,15 @@
               <p class="welcome-subtitle" data-i18n="welcomeSubtitle">Here's your business update for today.</p>
             </div>
             <div class="welcome-banner-right">
-              <div class="current-date-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                <span id="currentDateDisplay">Tuesday, 9 September 2026</span>
+              <div class="header-date-filter-wrap">
+                <div class="current-date-badge date-picker-trigger" id="headerDateBadge" title="Click to filter by date / તારીખ મુજબ ફિલ્ટર કરવા ક્લિક કરો">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  <span id="currentDateDisplay">Tuesday, 9 September 2026</span>
+                  <input type="date" id="headerDateFilterInput" class="header-date-input" title="Filter by date / તારીખ પસંદ કરો">
+                </div>
+                <button type="button" id="btnClearHeaderDateFilter" class="btn-clear-date-filter" style="display:none;" title="Show Today / Reset filter (બધું બતાવો)">
+                  ✕ <span data-i18n="clearFilter">Clear</span>
+                </button>
               </div>
               <div class="company-slogan">
                 <span data-i18n="taglineHeader">"Keep Your Customers On The Road"</span>
@@ -1845,6 +1851,6 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Logic Script -->
-  <script src="app.js?v=8.0"></script>
+  <script src="app.js?v=9.0"></script>
 </body>
 </html>
