@@ -2470,6 +2470,7 @@ class AutoCareCRM {
         customer[field] = newVal;
         if (field === 'expiry') {
           customer.expiryRaw = this.formatDateToInput(newVal);
+          this.computeCustomerDynamicState(customer);
         }
         this.saveData();
       }
@@ -3047,9 +3048,6 @@ class AutoCareCRM {
         customer.doc = doc;
         customer.expiry = expiry;
         customer.expiryRaw = expiryRaw;
-        customer.daysLeft = daysLeft;
-        customer.daysType = (daysLeft.toLowerCase().includes('today') || daysLeft.toLowerCase().includes('expired') || parseInt(daysLeft) <= 7) ? 'red' : 'normal';
-        customer.status = status;
         customer.assignedStaff = assignedStaff;
         customer.remarks = remarks;
         customer.lastModifiedBy = activeEmp.name;
@@ -3059,6 +3057,8 @@ class AutoCareCRM {
           customer.createdById = activeEmp.id;
           customer.createdAt = nowFormatted;
         }
+        this.computeCustomerDynamicState(customer);
+        if (status === 'Renewed') customer.status = 'Renewed';
       }
       this.logActivity('contacted', `Updated details for ${name} (${vehicle}) by ${activeEmp.name} (${activeEmp.role})`);
     } else {
@@ -3072,9 +3072,6 @@ class AutoCareCRM {
         doc: doc,
         expiry: expiry,
         expiryRaw: expiryRaw,
-        daysLeft: daysLeft,
-        daysType: (daysLeft.toLowerCase().includes('today') || daysLeft.toLowerCase().includes('expired') || parseInt(daysLeft) <= 7) ? 'red' : 'normal',
-        status: status,
         assignedStaff: assignedStaff || activeEmp.id,
         remarks: remarks,
         createdBy: activeEmp.name,
@@ -3084,6 +3081,8 @@ class AutoCareCRM {
         lastModifiedAt: nowFormatted,
         contacted: false
       };
+      this.computeCustomerDynamicState(newCustomer);
+      if (status === 'Renewed') newCustomer.status = 'Renewed';
       this.data.callingList.unshift(newCustomer);
       this.logActivity('contacted', `Added new customer - ${name} (${vehicleType}) by ${activeEmp.name} (${activeEmp.role})`);
     }
@@ -3270,6 +3269,13 @@ class AutoCareCRM {
       if (!isManuallyRenewed) c.status = 'Upcoming';
       c.daysType = 'normal';
     }
+  }
+
+  recalculateAllCustomerStates() {
+    if (!this.data || !Array.isArray(this.data.callingList)) return;
+    this.data.callingList.forEach(c => {
+      this.computeCustomerDynamicState(c);
+    });
   }
 
   getSortPriority(c) {
@@ -3699,6 +3705,7 @@ class AutoCareCRM {
   }
 
   getFilteredCallingList() {
+    this.recalculateAllCustomerStates();
     let list = this.data.callingList || [];
     const isAdmin = this.isCurrentUserAdmin();
 
