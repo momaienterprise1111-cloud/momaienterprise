@@ -3171,20 +3171,25 @@ class AutoCareCRM {
     const days = this.getDaysRemainingNumber(c);
     const isRenewed = (c.status || '').toLowerCase() === 'renewed';
 
-    // Category 2: Manually Renewed / Completed items (always at the very bottom)
+    // Category 3: Manually Renewed / Completed items (always at the very bottom)
     if (isRenewed) {
-      return { cat: 2, val: days >= 0 ? days : Math.abs(days) + 10000 };
+      return { cat: 3, val: days >= 0 ? days : Math.abs(days) + 10000 };
     }
 
-    // Category 0: Today (0 days) & Upcoming (1 day, 2 days, 10 days, 13 days...)
-    // Sorted strictly ascending: 0 (Today) at the top, then 1, 2, ..., 10, 13...
-    if (days >= 0) {
-      return { cat: 0, val: days };
+    // Category 0: Today (0 days / Today) -> ALWAYS TOP PRIORITY (Row 1, 2, 3...)!
+    if (days === 0) {
+      return { cat: 0, val: 0 };
     }
 
-    // Category 1: Expired (days < 0, e.g. -1, -2, -10 days ago) - placed at the LAST after all upcoming!
+    // Category 1: Upcoming future dates (days > 0, e.g. 1 day, 2 days, 10 days, 13 days...)
+    // Sorted ascending (soonest expiring first: 1, 2, ..., 10, 13...)
+    if (days > 0) {
+      return { cat: 1, val: days };
+    }
+
+    // Category 2: Expired past dates (days < 0, e.g. -1, -2, -10 days ago) -> AT THE VERY LAST / BOTTOM!
     // Within expired, sort by most recently expired first (-1 day before -30 days)
-    return { cat: 1, val: Math.abs(days) };
+    return { cat: 2, val: Math.abs(days) };
   }
 
   sortByExpiryDays(list) {
@@ -3205,18 +3210,25 @@ class AutoCareCRM {
   sortCallingList(list) {
     if (!Array.isArray(list)) return [];
     return list.slice().sort((a, b) => {
-      // 0: Pending/uncontacted items, 1: Contacted or Renewed items (placed at bottom)
-      const aDone = (a.contacted || a.status === 'Renewed') ? 1 : 0;
-      const bDone = (b.contacted || b.status === 'Renewed') ? 1 : 0;
-      if (aDone !== bDone) {
-        return aDone - bDone;
-      }
-      // Top: Today (0 days) -> Upcoming (1, 2, 10, 13 days...) -> Last: Expired (days < 0)
+      // 1. Primary order:
+      // Cat 0: Today (0 days) - VERY TOP!
+      // Cat 1: Upcoming (1, 2, 10, 13 days...) - BELOW TODAY!
+      // Cat 2: Expired (-1, -2, -10 days ago) - AT THE BOTTOM (LAST)!
+      // Cat 3: Renewed - VERY BOTTOM!
       const pA = this.getSortPriority(a);
       const pB = this.getSortPriority(b);
       if (pA.cat !== pB.cat) {
         return pA.cat - pB.cat;
       }
+
+      // 2. Within the same category, prioritize uncontacted before contacted
+      const aDone = a.contacted ? 1 : 0;
+      const bDone = b.contacted ? 1 : 0;
+      if (aDone !== bDone) {
+        return aDone - bDone;
+      }
+
+      // 3. Within same category & contact status, sort by value
       if (pA.val !== pB.val) {
         return pA.val - pB.val;
       }
