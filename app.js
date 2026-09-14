@@ -608,12 +608,18 @@ class AutoCareCRM {
       this.syncCloudData();
     }, 3000);
 
-    // 3. Instant sync on tab focus or visibility change
+    // 3. Instant sync & date refresh on tab focus or visibility change
     window.addEventListener('focus', () => {
+      if (this.currentDateDisplay) {
+        this.currentDateDisplay.textContent = this.getCurrentDateFormatted();
+      }
       this.syncCloudData({ force: false });
     });
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
+        if (this.currentDateDisplay) {
+          this.currentDateDisplay.textContent = this.getCurrentDateFormatted();
+        }
         this.syncCloudData({ force: false });
       }
     });
@@ -805,6 +811,7 @@ class AutoCareCRM {
     this.inputCustDays = document.getElementById('inputCustDays');
     this.selectCustStatus = document.getElementById('selectCustStatus');
     this.calcHintText = document.getElementById('calcHintText');
+    this.currentDateDisplay = document.getElementById('currentDateDisplay');
 
     // Login, Logout & Master Staff Filter Elements
     this.btnSidebarStaffAccounts = document.getElementById('btnSidebarStaffAccounts');
@@ -1573,6 +1580,19 @@ class AutoCareCRM {
     return `<span class="vehicle-badge badge-4w" title="Four Wheeler">🚗 4W</span>`;
   }
 
+  getCurrentDateFormatted(lang = this.currentLang) {
+    const now = new Date();
+    if (lang === 'gu') {
+      const daysGu = ['રવિવાર', 'સોમવાર', 'મંગળવાર', 'બુધવાર', 'ગુરુવાર', 'શુક્રવાર', 'શનિવાર'];
+      const monthsGu = ['જાન્યુઆરી', 'ફેબ્રુઆરી', 'માર્ચ', 'એપ્રિલ', 'મે', 'જૂન', 'જુલાઈ', 'ઓગસ્ટ', 'સપ્ટેમ્બર', 'ઓક્ટોબર', 'નવેમ્બર', 'ડિસેમ્બર'];
+      return `${daysGu[now.getDay()]}, ${now.getDate()} ${monthsGu[now.getMonth()]} ${now.getFullYear()}`;
+    } else {
+      const daysEn = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const monthsEn = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      return `${daysEn[now.getDay()]}, ${now.getDate()} ${monthsEn[now.getMonth()]} ${now.getFullYear()}`;
+    }
+  }
+
   render() {
     // 1. Language pill update
     if (this.currentLang === 'gu') {
@@ -1592,6 +1612,11 @@ class AutoCareCRM {
     // 3. Update placeholders & texts
     if (this.searchInput) this.searchInput.placeholder = this.t('searchPlaceholder');
     if (this.editModeText) this.editModeText.textContent = this.editMode ? this.t('editModeOn') : this.t('editModeOff');
+
+    // 3b. Update Live Current Date
+    if (this.currentDateDisplay) {
+      this.currentDateDisplay.textContent = this.getCurrentDateFormatted();
+    }
 
     // 4. Update Profile & Active Employee info
     const activeEmp = this.getActiveEmployee();
