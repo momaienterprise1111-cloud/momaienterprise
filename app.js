@@ -858,25 +858,34 @@ class AutoCareCRM {
     });
 
     // Header Calendar Date Filter
-    if (this.headerDateFilterInput) {
-      this.headerDateFilterInput.addEventListener('change', (e) => {
-        this.handleHeaderDateFilter(e.target.value);
-      });
-    }
+    const triggerCalendarPicker = () => {
+      if (!this.headerDateFilterInput) return;
+      try {
+        if (typeof this.headerDateFilterInput.showPicker === 'function') {
+          this.headerDateFilterInput.showPicker();
+        } else {
+          this.headerDateFilterInput.focus();
+        }
+      } catch (err) {
+        try {
+          this.headerDateFilterInput.focus();
+        } catch (e) {}
+      }
+    };
 
     if (this.headerDateBadge) {
       this.headerDateBadge.addEventListener('click', (e) => {
-        if (e.target !== this.headerDateFilterInput && this.headerDateFilterInput) {
-          try {
-            if (typeof this.headerDateFilterInput.showPicker === 'function') {
-              this.headerDateFilterInput.showPicker();
-            } else {
-              this.headerDateFilterInput.focus();
-            }
-          } catch (err) {
-            this.headerDateFilterInput.focus();
-          }
-        }
+        triggerCalendarPicker();
+      });
+    }
+
+    if (this.headerDateFilterInput) {
+      this.headerDateFilterInput.addEventListener('click', (e) => {
+        e.stopPropagation();
+        triggerCalendarPicker();
+      });
+      this.headerDateFilterInput.addEventListener('change', (e) => {
+        this.handleHeaderDateFilter(e.target.value);
       });
     }
 
@@ -3307,9 +3316,9 @@ class AutoCareCRM {
   sortCallingList(list) {
     if (!Array.isArray(list)) return [];
     return list.slice().sort((a, b) => {
-      // 1. Primary order:
+      // 1. Primary category order:
       // Cat 0: Today (0 days) - VERY TOP!
-      // Cat 1: Upcoming (1, 2, 10, 13 days...) - BELOW TODAY!
+      // Cat 1: Upcoming (1, 2, 3, 10, 13 days...) - CHRONOLOGICAL ASCENDING!
       // Cat 2: Expired (-1, -2, -10 days ago) - AT THE BOTTOM (LAST)!
       // Cat 3: Renewed - VERY BOTTOM!
       const pA = this.getSortPriority(a);
@@ -3318,17 +3327,18 @@ class AutoCareCRM {
         return pA.cat - pB.cat;
       }
 
-      // 2. Within the same category, prioritize uncontacted before contacted
+      // 2. Primary order within category: Closest/Soonest Expiry Date (Days Left) FIRST!
+      if (pA.val !== pB.val) {
+        return pA.val - pB.val;
+      }
+
+      // 3. For identical expiry days, prioritize uncontacted before contacted
       const aDone = a.contacted ? 1 : 0;
       const bDone = b.contacted ? 1 : 0;
       if (aDone !== bDone) {
         return aDone - bDone;
       }
 
-      // 3. Within same category & contact status, sort by value
-      if (pA.val !== pB.val) {
-        return pA.val - pB.val;
-      }
       return (a.name || '').localeCompare(b.name || '');
     });
   }
