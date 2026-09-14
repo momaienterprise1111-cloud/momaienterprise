@@ -820,13 +820,24 @@
                 <span data-i18n="backToDashboard">← Back to Dashboard</span>
               </button>
               <div class="view-title-wrap">
-                <h2 class="view-main-title">
-                  <span>📞</span> <span data-i18n="callingListTitle">Today's Calling List (Full View)</span>
+                <h2 class="view-main-title" id="callingViewMainTitle">
+                  <span>⚡</span> <span data-i18n="callingListTitle">Today's Follow-ups (Full View)</span>
                 </h2>
-                <p class="view-subtitle" data-i18n="callingViewSubtitle">Call, WhatsApp, and record document renewal follow-ups for all due vehicles.</p>
+                <p class="view-subtitle" id="callingViewSubtitle" data-i18n="callingViewSubtitle">Call, WhatsApp, and record document renewal follow-ups for all due vehicles.</p>
               </div>
             </div>
             <div class="view-header-actions">
+              <!-- Scope Tabs: Today's Follow-ups vs All Calling List -->
+              <div class="vehicle-filter-tabs" id="callingScopeTabs">
+                <button class="v-filter-btn active" data-calling-scope="today" id="btnCallingScopeToday">
+                  <span>⚡ Today's Follow-ups</span>
+                  <span id="badgeCallingScopeToday" style="font-weight:700; margin-left:4px;">(0)</span>
+                </button>
+                <button class="v-filter-btn" data-calling-scope="all" id="btnCallingScopeAll">
+                  <span>📋 All Calling List</span>
+                  <span id="badgeCallingScopeAll" style="font-weight:700; margin-left:4px;">(0)</span>
+                </button>
+              </div>
               <div class="vehicle-filter-tabs">
                 <button class="v-filter-btn active" data-vfilter="all" data-vtable="calling">
                   <span data-i18n="filterAll">All</span>
@@ -857,6 +868,7 @@
                     <th data-i18n="colDaysLeft">Days Left</th>
                     <th data-i18n="colStatus">Status</th>
                     <th data-i18n="colEntryBy">Entry By</th>
+                    <th data-i18n="colRemarks">Remarks</th>
                     <th data-i18n="colActions">Actions</th>
                   </tr>
                 </thead>

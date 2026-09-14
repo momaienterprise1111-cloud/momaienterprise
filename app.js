@@ -467,6 +467,7 @@ class AutoCareCRM {
     this.docActiveTab = 'all';
     this.callingVFilter = 'all';
     this.masterStaffFilter = 'all';
+    this.callingScope = 'today';
 
     // Session Management
     this.currentSession = this.loadSession();
@@ -1249,6 +1250,16 @@ class AutoCareCRM {
       });
     });
 
+    // Calling Scope Filter buttons (Today's Follow-ups vs All Calling List)
+    document.querySelectorAll('[data-calling-scope]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-calling-scope]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.callingScope = btn.getAttribute('data-calling-scope');
+        this.renderCallingListFullTable();
+      });
+    });
+
     // Document Sub-tabs (All, Insurance, Fitness, PUC, Expired)
     document.querySelectorAll('.doc-tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1475,6 +1486,11 @@ class AutoCareCRM {
 
   navigateTo(viewName, updateHash = true) {
     this.currentView = viewName;
+    if (viewName === 'followups') {
+      this.callingScope = 'today';
+    } else if (viewName === 'calling-list') {
+      this.callingScope = 'all';
+    }
 
     // View Mapping
     const viewMap = {
@@ -1747,14 +1763,18 @@ class AutoCareCRM {
     };
 
     list.forEach(c => {
+      // Recompute real dynamic days and status based on current live date
+      this.computeCustomerDynamicState(c);
+
       const days = this.getDaysRemainingNumber(c);
-      const isExp = (c.status || '').toLowerCase().includes('expired') || days < 0;
-      const isToday = (c.status || '').toLowerCase().includes('today') || days === 0;
+      const isRenewed = (c.status || '').toLowerCase() === 'renewed';
+      const isExp = days < 0 && !isRenewed;
+      const isToday = days === 0 && !isRenewed;
 
       if (isToday) todayCount++;
       if (isExp) expiredCount++;
-      if (!isExp && days >= 0 && days <= 7) next7Count++;
-      if (!isExp && days >= 0 && days <= 30) next30Count++;
+      if (!isExp && !isRenewed && days >= 0 && days <= 7) next7Count++;
+      if (!isExp && !isRenewed && days >= 0 && days <= 30) next30Count++;
 
       const d = (c.doc || '').toLowerCase();
       let keyPrefix = '';
@@ -1768,7 +1788,7 @@ class AutoCareCRM {
 
       if (keyPrefix) {
         if (isExp) docCounts[keyPrefix + 'Expired'] = (docCounts[keyPrefix + 'Expired'] || 0) + 1;
-        else docCounts[keyPrefix + 'Expiring'] = (docCounts[keyPrefix + 'Expiring'] || 0) + 1;
+        else if (!isRenewed) docCounts[keyPrefix + 'Expiring'] = (docCounts[keyPrefix + 'Expiring'] || 0) + 1;
       }
     });
 
@@ -1951,7 +1971,11 @@ class AutoCareCRM {
     // Filter by Tab
     if (this.docActiveTab !== 'all') {
       if (this.docActiveTab === 'expired') {
-        list = list.filter(c => (c.status || '').toLowerCase().includes('expired') || (c.daysLeft || '').toLowerCase().includes('expired'));
+        list = list.filter(c => {
+          const days = this.getDaysRemainingNumber(c);
+          const isRenewed = (c.status || '').toLowerCase() === 'renewed';
+          return !isRenewed && days < 0;
+        });
       } else {
         const dt = (this.data.documentTypes || []).find(d => d.id === this.docActiveTab);
         const searchName = dt ? dt.name.toLowerCase() : this.docActiveTab.toLowerCase();
@@ -1966,7 +1990,12 @@ class AutoCareCRM {
     if (this.docVFilter !== 'all') {
       list = list.filter(c => (c.vehicleType || '4-wheeler') === this.docVFilter);
     }
-    list = this.sortByExpiryDays(list);
+    
+    if (this.docActiveTab === 'expired') {
+      list = list.slice().sort((a, b) => this.getDaysRemainingNumber(b) - this.getDaysRemainingNumber(a));
+    } else {
+      list = this.sortByExpiryDays(list);
+    }
 
     if (!list || list.length === 0) {
       this.documentsTableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 24px; color: #94a3b8;">No documents found for selected filters</td></tr>`;
@@ -2004,31 +2033,65 @@ class AutoCareCRM {
     });
   }
 
+  getTodayFollowupsList(customList = null) {
+    const list = customList !== null ? customList : this.getFilteredCallingList();
+    return list.filter(c => {
+      const days = this.getDaysRemainingNumber(c);
+      const isRenewed = (c.status || '').toLowerCase() === 'renewed';
+      return days === 0 && !isRenewed;
+    });
+  }
+
   // --- Render Dedicated Full Calling List View ---
   renderCallingListFullTable() {
     this.callingListFullTableBody.innerHTML = '';
     let list = this.getFilteredCallingList();
 
+    // 1. Calculate and update scope badge counts
+    const todayList = this.getTodayFollowupsList(list);
+    const allCount = list.length;
+    const todayCount = todayList.length;
+
+    const badgeToday = document.getElementById('badgeCallingScopeToday');
+    if (badgeToday) badgeToday.textContent = `(${todayCount})`;
+    const badgeAll = document.getElementById('badgeCallingScopeAll');
+    if (badgeAll) badgeAll.textContent = `(${allCount})`;
+
+    // Update active scope button
+    document.querySelectorAll('[data-calling-scope]').forEach(btn => {
+      if (btn.getAttribute('data-calling-scope') === this.callingScope) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    if (this.callingScope === 'today') {
+      list = todayList;
+    }
+
+    // 2. Filter by Vehicle Type
     if (this.callingVFilter !== 'all') {
       list = list.filter(c => (c.vehicleType || '4-wheeler') === this.callingVFilter);
     }
+
     list = this.sortCallingList(list);
 
     if (!list || list.length === 0) {
-      this.callingListFullTableBody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 24px; color: #94a3b8;">No calling list records matching filter</td></tr>`;
+      this.callingListFullTableBody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 24px; color: #94a3b8;">${this.callingScope === 'today' ? 'No follow-up calls scheduled for today / આજે કોઈ ફોલો-અપ કોલ નથી' : 'No records found / કોઈ રેકોર્ડ મળ્યો નથી'}</td></tr>`;
       return;
     }
 
     list.forEach((c, index) => {
       const tr = document.createElement('tr');
-      if (c.contacted || c.status === 'Renewed') {
-        tr.classList.add('row-contacted');
-      }
       const badgeClass = this.getStatusBadgeClass(c.status);
       const translatedStatus = this.getTranslatedStatus(c.status);
       const translatedDoc = this.getTranslatedDoc(c.doc);
       const vBadge = this.getVehicleBadgeHtml(c.vehicleType);
       const entryBadge = this.getEntryByBadgeHtml(c);
+      const remarksHtml = c.remarks
+        ? `<span class="cust-remark-chip" data-action="quick-remark" data-id="${c.id}" title="${this.escapeHtml(c.remarks)}">💬 ${this.escapeHtml(c.remarks)}</span>`
+        : `<button class="btn-add-remark" data-action="quick-remark" data-id="${c.id}" title="Add follow-up note / નોંધ ઉમેરો">+ Note</button>`;
 
       tr.innerHTML = `
         <td class="col-num">${index + 1}</td>
@@ -2039,6 +2102,7 @@ class AutoCareCRM {
         <td class="col-days-red">${this.escapeHtml(c.daysLeft)}</td>
         <td><span class="status-pill clickable ${badgeClass}" data-status-id="${c.id}" title="Click to change status / સ્થિતિ બદલવા માટે ક્લિક કરો"><span class="status-dot"></span>${translatedStatus}</span></td>
         <td>${entryBadge}</td>
+        <td>${remarksHtml}</td>
         <td>
           <div class="action-buttons-group">
             <button type="button" class="action-icon-btn btn-whatsapp" title="WhatsApp Reminder" data-action="whatsapp" data-id="${c.id}">
@@ -2059,19 +2123,23 @@ class AutoCareCRM {
     const list = customList !== null ? customList : this.getFilteredCallingList();
     return list.filter(c => {
       const days = this.getDaysRemainingNumber(c);
-      const isExp = (c.status || '').toLowerCase().includes('expired') || (c.daysLeft || '').toLowerCase().includes('expired') || days < 0;
-      return !isExp && days >= 0 && days <= 7;
-    }).map(c => ({
-      ...c,
-      days: c.daysLeft ? (c.daysLeft.replace(/[^0-9]/g, '') || String(Math.max(0, this.getDaysRemainingNumber(c)))) : String(Math.max(0, this.getDaysRemainingNumber(c)))
-    }));
+      const isRenewed = (c.status || '').toLowerCase() === 'renewed';
+      return !isRenewed && days >= 0 && days <= 7;
+    }).map(c => {
+      const days = Math.max(0, this.getDaysRemainingNumber(c));
+      return {
+        ...c,
+        days: String(days)
+      };
+    });
   }
 
   getExpiredDocsList(customList = null) {
     const list = customList !== null ? customList : this.getFilteredCallingList();
     return list.filter(c => {
       const days = this.getDaysRemainingNumber(c);
-      return (c.status || '').toLowerCase().includes('expired') || (c.daysLeft || '').toLowerCase().includes('expired') || days < 0;
+      const isRenewed = (c.status || '').toLowerCase() === 'renewed';
+      return !isRenewed && days < 0;
     }).map(c => ({
       ...c,
       expiredOn: c.expiry || c.expiredOn || 'Expired'
@@ -2083,19 +2151,20 @@ class AutoCareCRM {
     this.next7DaysFullTableBody.innerHTML = '';
     const sortedList = this.sortByExpiryDays(this.getNext7DaysList());
     if (!sortedList || sortedList.length === 0) {
-      this.next7DaysFullTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 24px; color: #94a3b8;">No documents expiring in the next 7 days</td></tr>`;
+      this.next7DaysFullTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 24px; color: #94a3b8;">No documents expiring in the next 7 days / આગામી ૭ દિવસમાં કોઈ એક્સપાયરી નથી</td></tr>`;
       return;
     }
     sortedList.forEach((item, index) => {
       const tr = document.createElement('tr');
       const vBadge = this.getVehicleBadgeHtml(item.vehicleType);
+      const daysDisplay = item.days === '0' ? 'Today' : `${item.days} Days`;
       tr.innerHTML = `
         <td class="col-num">${index + 1}</td>
         <td class="col-customer">${this.escapeHtml(item.name)}</td>
         <td>${vBadge}<span class="col-vehicle">${this.escapeHtml(item.vehicle)}</span></td>
         <td>${this.escapeHtml(this.getTranslatedDoc(item.doc))}</td>
         <td>${this.escapeHtml(item.expiry)}</td>
-        <td class="col-days-red" style="font-weight:700;">${this.escapeHtml(item.days)} Days</td>
+        <td class="col-days-red" style="font-weight:700;">${this.escapeHtml(daysDisplay)}</td>
         <td>
           <button class="action-icon-btn btn-whatsapp" title="WhatsApp Reminder" data-action="whatsapp" data-id="${item.id}">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2z"/></svg>
@@ -2112,9 +2181,9 @@ class AutoCareCRM {
   // --- Render Expired Docs Full View Table ---
   renderExpiredDocsFullTable() {
     this.expiredDocsFullTableBody.innerHTML = '';
-    const sortedList = this.getExpiredDocsList().slice().sort((a, b) => this.getDaysRemainingNumber(a) - this.getDaysRemainingNumber(b));
+    const sortedList = this.getExpiredDocsList().slice().sort((a, b) => this.getDaysRemainingNumber(b) - this.getDaysRemainingNumber(a));
     if (!sortedList || sortedList.length === 0) {
-      this.expiredDocsFullTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 24px; color: #94a3b8;">No expired documents found</td></tr>`;
+      this.expiredDocsFullTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 24px; color: #94a3b8;">No expired documents found / કોઈ મુદત પૂરી થયેલ દસ્તાવેજ નથી</td></tr>`;
       return;
     }
     sortedList.forEach((item, index) => {
@@ -2919,22 +2988,88 @@ class AutoCareCRM {
     this.showToast(this.t('toastSaved'), 'success');
   }
 
-  // --- Date Parsing & Conversion Helpers ---
+  // --- Robust Date Parsing & Conversion Helpers ---
+  parseDateRobust(dateStr) {
+    if (!dateStr) return null;
+    if (dateStr instanceof Date && !isNaN(dateStr.getTime())) return dateStr;
+    const str = String(dateStr).trim();
+    if (!str) return null;
+
+    // 1. ISO format: YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss
+    const isoMatch = str.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+    if (isoMatch) {
+      const y = parseInt(isoMatch[1], 10);
+      const m = parseInt(isoMatch[2], 10) - 1;
+      const d = parseInt(isoMatch[3], 10);
+      return new Date(y, m, d);
+    }
+
+    // 2. DD-MM-YYYY or DD/MM/YYYY or DD.MM.YYYY
+    const dmyMatch = str.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/);
+    if (dmyMatch) {
+      const d = parseInt(dmyMatch[1], 10);
+      const m = parseInt(dmyMatch[2], 10) - 1;
+      const y = parseInt(dmyMatch[3], 10);
+      return new Date(y, m, d);
+    }
+
+    // 3. DD MonthName YYYY (e.g. "27 Sep 2026", "09 September 2026", "15-Jun-2027")
+    const monthNames = {
+      jan: 0, january: 0,
+      feb: 1, february: 1,
+      mar: 2, march: 2,
+      apr: 3, april: 3,
+      may: 4,
+      jun: 5, june: 5,
+      jul: 6, july: 6,
+      aug: 7, august: 7,
+      sep: 8, sept: 8, september: 8,
+      oct: 9, october: 9,
+      nov: 10, november: 10,
+      dec: 11, december: 11
+    };
+    const namedMatch = str.match(/^(\d{1,2})[\s\-\/\.]+([A-Za-z]+)[\s\-\/\.]+(\d{4})/);
+    if (namedMatch) {
+      const d = parseInt(namedMatch[1], 10);
+      const mKey = namedMatch[2].toLowerCase();
+      const y = parseInt(namedMatch[3], 10);
+      if (monthNames[mKey] !== undefined) {
+        return new Date(y, monthNames[mKey], d);
+      }
+    }
+
+    // 4. MonthName DD, YYYY (e.g. "September 14, 2026")
+    const mdyNamedMatch = str.match(/^([A-Za-z]+)[\s\-\/\.]+(\d{1,2})[,\s\-\/\.]+(\d{4})/);
+    if (mdyNamedMatch) {
+      const mKey = mdyNamedMatch[1].toLowerCase();
+      const d = parseInt(mdyNamedMatch[2], 10);
+      const y = parseInt(mdyNamedMatch[3], 10);
+      if (monthNames[mKey] !== undefined) {
+        return new Date(y, monthNames[mKey], d);
+      }
+    }
+
+    // 5. Standard Date.parse fallback
+    const parsed = Date.parse(str);
+    if (!isNaN(parsed)) {
+      const dObj = new Date(parsed);
+      return new Date(dObj.getFullYear(), dObj.getMonth(), dObj.getDate());
+    }
+
+    return null;
+  }
+
   formatDateToInput(dateStr) {
     if (!dateStr) {
       const d = new Date();
       d.setDate(d.getDate() + 7);
       return d.toISOString().slice(0, 10);
     }
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-      return dateStr;
-    }
-    const parsed = Date.parse(dateStr);
-    if (!isNaN(parsed)) {
-      const d = new Date(parsed);
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
+    const dObj = this.parseDateRobust(dateStr);
+    if (dObj) {
+      const y = dObj.getFullYear();
+      const m = String(dObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dObj.getDate()).padStart(2, '0');
       return `${y}-${m}-${day}`;
     }
     const d = new Date();
@@ -2944,30 +3079,21 @@ class AutoCareCRM {
 
   formatInputToDisplay(dateVal) {
     if (!dateVal) return '';
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateVal)) {
-      const [y, m, d] = dateVal.split('-').map(Number);
-      const dateObj = new Date(y, m - 1, d);
-      const day = String(dateObj.getDate()).padStart(2, '0');
+    const dObj = this.parseDateRobust(dateVal);
+    if (dObj) {
+      const day = String(dObj.getDate()).padStart(2, '0');
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      return `${day} ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+      return `${day} ${months[dObj.getMonth()]} ${dObj.getFullYear()}`;
     }
     return dateVal;
   }
 
   getExpiryTimestamp(c) {
     if (!c) return Infinity;
-    if (c.expiryRaw && /^\d{4}-\d{2}-\d{2}$/.test(c.expiryRaw)) {
-      const parts = c.expiryRaw.split('-').map(Number);
-      return new Date(parts[0], parts[1] - 1, parts[2]).getTime();
-    }
-    if (c.expiry) {
-      const iso = this.formatDateToInput(c.expiry);
-      if (iso && /^\d{4}-\d{2}-\d{2}$/.test(iso)) {
-        const parts = iso.split('-').map(Number);
-        return new Date(parts[0], parts[1] - 1, parts[2]).getTime();
-      }
-      const parsed = Date.parse(c.expiry);
-      if (!isNaN(parsed)) return parsed;
+    const dateVal = c.expiryRaw || c.expiry || c.expiredOn;
+    if (dateVal) {
+      const dObj = this.parseDateRobust(dateVal);
+      if (dObj) return dObj.getTime();
     }
     if (c.daysLeft) {
       const dl = String(c.daysLeft).toLowerCase();
@@ -2984,7 +3110,19 @@ class AutoCareCRM {
   getDaysRemainingNumber(c) {
     if (!c) return 999999;
 
-    // 1. Explicit daysLeft or days string
+    // 1. Primary Source of Truth: Real Expiry Date
+    const dateVal = c.expiryRaw || c.expiry || c.expiredOn;
+    if (dateVal) {
+      const dObj = this.parseDateRobust(dateVal);
+      if (dObj) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        dObj.setHours(0, 0, 0, 0);
+        return Math.round((dObj.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      }
+    }
+
+    // 2. Fallback: Parse explicit daysLeft string only if no parseable date exists
     const dlStr = String(c.daysLeft || c.days || '').toLowerCase().trim();
     if (dlStr) {
       if (dlStr.includes('today')) return 0;
@@ -2996,27 +3134,36 @@ class AutoCareCRM {
       if (m) return parseInt(m[1], 10);
     }
 
-    // 2. expiredOn string (e.g. "02 Sep 2026 (7 days ago)")
-    if (c.expiredOn) {
-      const expOnStr = String(c.expiredOn).toLowerCase();
-      const m = expOnStr.match(/(\d+)\s*day/);
-      if (m) return -parseInt(m[1], 10);
-    }
-
-    // 3. Fallback: Parse date
-    const dateVal = c.expiryRaw || c.expiry || c.expiredOn;
-    if (dateVal) {
-      const iso = this.formatDateToInput(dateVal);
-      if (iso && /^\d{4}-\d{2}-\d{2}$/.test(iso)) {
-        const [y, m, d] = iso.split('-').map(Number);
-        const target = new Date(y, m - 1, d);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        return Math.round((target - today) / (1000 * 60 * 60 * 24));
-      }
-    }
-
     return 999999;
+  }
+
+  computeCustomerDynamicState(c) {
+    if (!c) return;
+    const days = this.getDaysRemainingNumber(c);
+    const isManuallyRenewed = (c.status || '').toLowerCase() === 'renewed';
+
+    if (days < 0) {
+      const daysOverdue = Math.abs(days);
+      c.daysLeft = `Expired (${daysOverdue} Days ago)`;
+      if (!isManuallyRenewed) c.status = 'Expired';
+      c.daysType = 'red';
+    } else if (days === 0) {
+      c.daysLeft = 'Today';
+      if (!isManuallyRenewed) c.status = 'Expiry Today';
+      c.daysType = 'red';
+    } else if (days <= 7) {
+      c.daysLeft = `${days} Days`;
+      if (!isManuallyRenewed) c.status = 'Due Soon';
+      c.daysType = 'red';
+    } else if (days <= 15) {
+      c.daysLeft = `${days} Days`;
+      if (!isManuallyRenewed) c.status = 'Due Soon';
+      c.daysType = 'normal';
+    } else {
+      c.daysLeft = `${days} Days`;
+      if (!isManuallyRenewed) c.status = 'Upcoming';
+      c.daysType = 'normal';
+    }
   }
 
   sortByExpiryDays(list) {
@@ -3040,7 +3187,7 @@ class AutoCareCRM {
       if (aDone !== bDone) {
         return aDone - bDone;
       }
-      // Earliest/most urgent expiry date first
+      // Earliest/most urgent expiry date first (Today -> 1 day -> 2 days... -> Expired)
       const daysA = this.getDaysRemainingNumber(a);
       const daysB = this.getDaysRemainingNumber(b);
       if (daysA !== daysB) {
