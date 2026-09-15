@@ -162,6 +162,8 @@ const TRANSLATIONS = {
     toastActivityAdded: 'Activity logged successfully!',
     toastReminderSent: 'Bulk reminder dispatched!',
     whatsappPrompt: 'Opening WhatsApp Web for customer...',
+    errVehicleDuplicate: 'Vehicle number already added!',
+    errVehicleDuplicateDetail: 'Vehicle number "{vehicle}" is already added (Customer: {name})!',
     // New translations for 2W/4W and Views
     backToDashboard: '← Back to Dashboard',
     vehicleTypeLabel: 'Vehicle Type',
@@ -352,6 +354,8 @@ const TRANSLATIONS = {
     toastActivityAdded: 'પ્રવૃત્તિ નોંધાઈ ગઈ!',
     toastReminderSent: 'બલ્ક રિમાઇન્ડર સફળતાપૂર્વક મોકલાયા!',
     whatsappPrompt: 'ગ્રાહક માટે WhatsApp ખોલી રહ્યું છે...',
+    errVehicleDuplicate: 'આ વાહન નંબર પહેલેથી ઉમેરેલ છે!',
+    errVehicleDuplicateDetail: 'વાહન નંબર "{vehicle}" પહેલેથી ઉમેરેલ છે! (ગ્રાહક: {name})',
     // New translations for 2W/4W and Views
     backToDashboard: '← ડેશબોર્ડ પર પાછા જાઓ',
     vehicleTypeLabel: 'વાહનનો પ્રકાર',
@@ -1033,6 +1037,17 @@ class AutoCareCRM {
         this.closeModals();
       }
     });
+
+    // Live Vehicle Number Duplicate Validation
+    const inputCustVehicle = document.getElementById('inputCustVehicle');
+    if (inputCustVehicle) {
+      inputCustVehicle.addEventListener('input', () => {
+        this.validateVehicleInputLive();
+      });
+      inputCustVehicle.addEventListener('blur', () => {
+        this.validateVehicleInputLive();
+      });
+    }
 
     // Customer Form Submit
     this.customerForm.addEventListener('submit', (e) => {
@@ -2467,10 +2482,23 @@ class AutoCareCRM {
     const saveCell = () => {
       const newVal = input.value.trim();
       if (newVal) {
-        customer[field] = newVal;
-        if (field === 'expiry') {
-          customer.expiryRaw = this.formatDateToInput(newVal);
-          this.computeCustomerDynamicState(customer);
+        if (field === 'vehicle') {
+          const existing = this.findExistingCustomerByVehicle(newVal, id);
+          if (existing) {
+            const errMsg = this.currentLang === 'gu'
+              ? `આ વાહન નંબર (${existing.vehicle}) પહેલેથી અન્ય ગ્રાહક (${existing.name}) માટે નોંધાયેલ છે!`
+              : `Vehicle number (${existing.vehicle}) is already added for another customer (${existing.name})!`;
+            this.showToast(errMsg, 'error');
+            this.render();
+            return;
+          }
+          customer.vehicle = newVal.toUpperCase();
+        } else {
+          customer[field] = newVal;
+          if (field === 'expiry') {
+            customer.expiryRaw = this.formatDateToInput(newVal);
+            this.computeCustomerDynamicState(customer);
+          }
         }
         this.saveData();
       }
@@ -2962,6 +2990,12 @@ class AutoCareCRM {
     const modalTitle = document.getElementById('customerModalTitle');
     this.populateStaffDropdown();
 
+    // Reset validation errors
+    const errEl = document.getElementById('custVehicleError');
+    if (errEl) errEl.style.display = 'none';
+    const inputVehEl = document.getElementById('inputCustVehicle');
+    if (inputVehEl) inputVehEl.classList.remove('input-error');
+
     if (customer) {
       modalTitle.textContent = this.t('editCustomerModalTitle');
       document.getElementById('inputCustName').value = customer.name;
@@ -3013,6 +3047,53 @@ class AutoCareCRM {
     this.customerModal.classList.add('active');
   }
 
+  // --- Duplicate Vehicle Validation Helpers ---
+  cleanVehicleNumber(v) {
+    return (v || '').toString().trim().replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  }
+
+  findExistingCustomerByVehicle(vehicle, excludeId = null) {
+    const cleanInput = this.cleanVehicleNumber(vehicle);
+    if (!cleanInput) return null;
+    return (this.data.callingList || []).find(c => {
+      if (excludeId && c.id === excludeId) return false;
+      return this.cleanVehicleNumber(c.vehicle) === cleanInput;
+    }) || null;
+  }
+
+  validateVehicleInputLive() {
+    const inputVeh = document.getElementById('inputCustVehicle');
+    if (!inputVeh) return true;
+    const vehicle = inputVeh.value.trim();
+    const clean = this.cleanVehicleNumber(vehicle);
+    const errEl = document.getElementById('custVehicleError');
+    const errTextEl = document.getElementById('custVehicleErrorText');
+
+    if (!clean || clean.length < 3) {
+      inputVeh.classList.remove('input-error');
+      if (errEl) errEl.style.display = 'none';
+      return true;
+    }
+
+    const existing = this.findExistingCustomerByVehicle(vehicle, this.editingCustomerId);
+    if (existing) {
+      inputVeh.classList.add('input-error');
+      if (errEl) {
+        errEl.style.display = 'block';
+        if (errTextEl) {
+          errTextEl.textContent = this.currentLang === 'gu'
+            ? `આ વાહન નંબર (${existing.vehicle}) પહેલેથી ઉમેરેલ છે! (ગ્રાહક: ${existing.name})`
+            : `Vehicle number (${existing.vehicle}) is already added! (Customer: ${existing.name})`;
+        }
+      }
+      return false;
+    } else {
+      inputVeh.classList.remove('input-error');
+      if (errEl) errEl.style.display = 'none';
+      return true;
+    }
+  }
+
   saveCustomerForm() {
     const name = document.getElementById('inputCustName').value.trim();
     const phone = document.getElementById('inputCustPhone').value.trim() || '9876543210';
@@ -3027,7 +3108,33 @@ class AutoCareCRM {
     const remarks = (document.getElementById('inputCustRemarks') ? document.getElementById('inputCustRemarks').value.trim() : '');
 
     if (!name || !vehicle) {
-      alert('Please fill in Customer Name and Vehicle Number.');
+      alert(this.currentLang === 'gu' ? 'કૃપા કરીને ગ્રાહકનું નામ અને વાહન નંબર દાખલ કરો.' : 'Please fill in Customer Name and Vehicle Number.');
+      return;
+    }
+
+    // Duplicate Vehicle Number Validation: Prevent adding same vehicle
+    const existingCustomer = this.findExistingCustomerByVehicle(vehicle, this.editingCustomerId);
+    if (existingCustomer) {
+      const errorMsg = this.currentLang === 'gu'
+        ? `વાહન નંબર "${vehicle}" પહેલેથી ઉમેરેલ છે! (ગ્રાહક: ${existingCustomer.name})`
+        : `Vehicle number "${vehicle}" is already added! (Customer: ${existingCustomer.name})`;
+      
+      this.showToast(errorMsg, 'error');
+      
+      const errEl = document.getElementById('custVehicleError');
+      const errTextEl = document.getElementById('custVehicleErrorText');
+      if (errEl) {
+        errEl.style.display = 'block';
+        if (errTextEl) {
+          errTextEl.textContent = errorMsg;
+        }
+      }
+      const inputVeh = document.getElementById('inputCustVehicle');
+      if (inputVeh) {
+        inputVeh.classList.add('input-error');
+        inputVeh.focus();
+        inputVeh.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
 
@@ -4440,10 +4547,22 @@ class AutoCareCRM {
           const json = XLSX.utils.sheet_to_json(worksheet, { defval: '', raw: true });
 
           let importedCount = 0;
+          let skippedDuplicateCount = 0;
+          const seenVehicles = new Set((this.data.callingList || []).map(c => this.cleanVehicleNumber(c.vehicle)));
+
           json.forEach((row, i) => {
             const name = row['Customer Name'] || row['Customer'] || row['Name'] || row['name'] || row['ગ્રાહક'];
             const vehicle = row['Vehicle Registration No'] || row['Vehicle No'] || row['Vehicle Number'] || row['Vehicle'] || row['vehicle'] || row['વાહન'];
             if (name && vehicle) {
+              const cleanV = this.cleanVehicleNumber(vehicle);
+              if (cleanV && seenVehicles.has(cleanV)) {
+                skippedDuplicateCount++;
+                return;
+              }
+              if (cleanV) {
+                seenVehicles.add(cleanV);
+              }
+
               const vTypeRaw = (row['Vehicle Type'] || row['Type'] || '4-wheeler').toLowerCase();
               const vType = vTypeRaw.includes('2') || vTypeRaw.includes('two') || vTypeRaw.includes('bike') ? '2-wheeler' : (vTypeRaw.includes('comm') || vTypeRaw.includes('truck') || vTypeRaw.includes('auto') ? 'commercial' : '4-wheeler');
 
@@ -4487,7 +4606,13 @@ class AutoCareCRM {
           this.render();
           this.closeModals();
           this.logActivity('contacted', `Imported ${importedCount} customers from Excel file (${file.name}) by ${activeEmp.name}`);
-          this.showToast(`Imported ${importedCount} customers from Excel successfully!`, 'success');
+          if (skippedDuplicateCount > 0) {
+            this.showToast(this.currentLang === 'gu'
+              ? `Excel માંથી ${importedCount} ગ્રાહકો આયાત કર્યા (${skippedDuplicateCount} પહેલેથી ઉમેરેલા વાહનો છોડ્યા)!`
+              : `Imported ${importedCount} customers (${skippedDuplicateCount} duplicate vehicles skipped)!`, 'success');
+          } else {
+            this.showToast(`Imported ${importedCount} customers from Excel successfully!`, 'success');
+          }
         } catch (err) {
           console.error(err);
           alert('Error reading Excel file. Please use the sample template format.');
@@ -4501,6 +4626,8 @@ class AutoCareCRM {
         const text = e.target.result;
         const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
         let importedCount = 0;
+        let skippedDuplicateCount = 0;
+        const seenVehiclesCsv = new Set((this.data.callingList || []).map(c => this.cleanVehicleNumber(c.vehicle)));
 
         for (let i = 1; i < lines.length; i++) {
           const parts = lines[i].split(',').map(p => p.replace(/^"|"$/g, '').trim());
@@ -4510,6 +4637,15 @@ class AutoCareCRM {
             const vTypeRaw = (parts[2] || '4-wheeler').toLowerCase();
             const vType = vTypeRaw.includes('2') ? '2-wheeler' : (vTypeRaw.includes('comm') ? 'commercial' : '4-wheeler');
             const vehicle = parts[3] || parts[1];
+            const cleanV = this.cleanVehicleNumber(vehicle);
+            if (cleanV && seenVehiclesCsv.has(cleanV)) {
+              skippedDuplicateCount++;
+              continue;
+            }
+            if (cleanV) {
+              seenVehiclesCsv.add(cleanV);
+            }
+
             const doc = parts[4] || 'Insurance';
             const expiry = parts[5] || '25 Sep 2026';
             const expiryRaw = this.formatDateToInput(expiry);
@@ -4547,7 +4683,13 @@ class AutoCareCRM {
         this.render();
         this.closeModals();
         this.logActivity('contacted', `Imported ${importedCount} customers from CSV file by ${activeEmp.name}`);
-        this.showToast(`Imported ${importedCount} customers from CSV!`, 'success');
+        if (skippedDuplicateCount > 0) {
+          this.showToast(this.currentLang === 'gu'
+            ? `CSV માંથી ${importedCount} ગ્રાહકો આયાત કર્યા (${skippedDuplicateCount} પહેલેથી ઉમેરેલા વાહનો છોડ્યા)!`
+            : `Imported ${importedCount} customers (${skippedDuplicateCount} duplicate vehicles skipped)!`, 'success');
+        } else {
+          this.showToast(`Imported ${importedCount} customers from CSV!`, 'success');
+        }
       };
       reader.readAsText(file);
     }

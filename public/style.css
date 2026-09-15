@@ -2071,6 +2071,32 @@ body {
   box-shadow: 0 0 0 3px rgba(30, 102, 245, 0.15);
 }
 
+.form-input.input-error, .form-select.input-error {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+}
+
+.vehicle-duplicate-error {
+  display: none;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 12px;
+  border-radius: 6px;
+  margin-top: 6px;
+  animation: shakeError 0.3s ease-in-out;
+  line-height: 1.4;
+}
+
+@keyframes shakeError {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
 .modal-footer {
   padding: 16px 22px;
   border-top: 1px solid var(--border-card);
